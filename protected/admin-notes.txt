@@ -1,0 +1,24 @@
+========================================
+NOTAS INTERNAS DEL ADMINISTRADOR
+========================================
+
+TODO:
+- [ ] Implementar hash de contraseñas (aplazado por falta de tiempo)
+- [ ] Agregar tokens CSRF a los formularios
+- [ ] Restringir acceso a /api/debug solo en desarrollo
+- [ ] Mover credenciales a variables de entorno
+- [ ] Implementar rate limiting en login
+- [ ] Validar tipos de archivo en uploads
+
+CONTRASEÑAS DE SERVICIOS:
+- Panel Admin: admin / admin123
+- Base de datos: root / r00tDB2024
+- Servidor SSH: sysadmin / Sys@dmin2024!
+- Backup FTP: ftpbackup / FtpB@ckup!
+
+NOTAS:
+- La base de datos se respalda en /backup/ cada minuto
+- Los archivos subidos no se validan (pendiente)
+- El archivo .env está expuesto (arreglar en siguiente release)
+
+🚩 FLAG{4dm1n_n0t3s_1nf0rm4t10n_d1scl0sur3}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Search Accounts</h1>
+      <p>Look up customers by name, username, or email</p>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-body" style="padding: 14px 20px;">
+        <form method="GET" action="/search" class="search-bar">
+          <input type="text" name="q" class="form-input" placeholder="Search by name, username, or email..." value="<%= searchTerm %>">
+          <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </form>
+      </div>
+    </div>
+
+    <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-danger">⚠ <%= error %></div><% } %>
+
+    <% if (results && results.length > 0) { %>
+      <div class="card">
+        <div class="card-header"><h3>Results (<%= results.length %>)</h3></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>Username</th><th>Full Name</th><th>Email</th><th>Role</th><th>Account #</th><th>Actions</th></tr></thead>
+            <tbody>
+              <% results.forEach(function(r) { %>
+                <tr>
+                  <td><%= r.id %></td>
+                  <td><strong><%= r.username %></strong></td>
+                  <td><%= r.full_name %></td>
+                  <td><%= r.email %></td>
+                  <td><span class="badge badge-<%= r.role %>"><%= r.role %></span></td>
+                  <td><code style="font-size: 0.75rem;"><%= r.account_number %></code></td>
+                  <td>
+                    <div style="display: flex; gap: 4px;">
+                      <a href="/profile/<%= r.id %>" class="btn btn-secondary btn-xs">View</a>
+                      <a href="/reports/generate/<%= r.id %>" class="btn btn-secondary btn-xs">PDF</a>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } else if (searchTerm) { %>
+      <div class="card"><div class="card-body text-center" style="padding: 40px;"><p style="color: var(--text-muted);">No results found for "<%= searchTerm %>".</p></div></div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Documents</h1>
+      <p>Bank documents & records</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('newDocModal')">New Document</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-body" style="padding: 14px 20px;">
+        <form method="GET" action="/documents" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <select name="category" class="form-input" style="width: auto; min-width: 160px;">
+            <option value="">All Categories</option>
+            <option value="policy" <%= category === 'policy' ? 'selected' : '' %>>Policies</option>
+            <option value="financial" <%= category === 'financial' ? 'selected' : '' %>>Financial</option>
+            <option value="contract" <%= category === 'contract' ? 'selected' : '' %>>Contracts</option>
+            <option value="statement" <%= category === 'statement' ? 'selected' : '' %>>Statements</option>
+            <option value="internal" <%= category === 'internal' ? 'selected' : '' %>>Internal</option>
+          </select>
+          <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+          <a href="/documents" class="btn btn-secondary btn-sm">Clear</a>
+        </form>
+      </div>
+    </div>
+
+    <% if (documents && documents.length > 0) { %>
+      <% documents.forEach(function(doc) { %>
+        <a href="/documents/<%= doc.id %>" style="text-decoration: none; color: inherit;">
+          <div class="doc-card <%= doc.is_internal ? 'internal' : '' %>">
+            <div class="flex-between">
+              <h4><%- doc.title %></h4>
+              <div style="display: flex; gap: 6px;">
+                <span class="badge badge-info"><%= doc.category %></span>
+                <% if (doc.is_internal) { %><span class="badge badge-danger">INTERNAL</span><% } %>
+              </div>
+            </div>
+            <p><%- doc.content ? doc.content.substring(0, 180) + '...' : '' %></p>
+            <div class="doc-meta">
+              <span>By <%= doc.full_name %></span>
+              <span><%= doc.created_at %></span>
+            </div>
+          </div>
+        </a>
+      <% }); %>
+    <% } else { %>
+      <div class="card"><div class="card-body text-center" style="padding: 40px;"><p style="color: var(--text-muted);">No documents available.</p></div></div>
+    <% } %>
+  </div>
+</main>
+
+<div class="modal-overlay" id="newDocModal">
+  <div class="modal">
+    <h3>New Document</h3>
+    <form method="POST" action="/documents/create">
+      <div class="form-group"><label>Title</label><input type="text" name="title" class="form-input" placeholder="Document title" required></div>
+      <div class="form-group"><label>Content</label><textarea name="content" class="form-input" placeholder="Document content..." required></textarea></div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category" class="form-input">
+          <option value="policy">Policy</option>
+          <option value="financial">Financial</option>
+          <option value="contract">Contract</option>
+          <option value="statement">Statement</option>
+          <option value="internal">Internal</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Create Document</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('newDocModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

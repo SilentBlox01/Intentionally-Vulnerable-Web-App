@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Administration Console</h1>
+      <p>System-wide management dashboard</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-success btn-sm" onclick="window.location.href='/admin/export/users'">Export Users (Excel)</button>
+      <a href="/api/debug" class="btn btn-secondary btn-xs" target="_blank">Debug</a>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- Admin Stats Cards -->
+    <div class="finance-metrics mb-6" id="adminStats">
+      <div class="finance-card primary-stat">
+        <div class="finance-icon" style="background: var(--primary-100);">
+          <svg viewBox="0 0 24 24" style="fill: var(--primary);"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Users</span>
+          <span class="finance-value" id="statUsers"><%= users.length %></span>
+        </div>
+      </div>
+      <div class="finance-card savings">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Balance</span>
+          <span class="finance-value" id="statBalance">$0.00</span>
+        </div>
+      </div>
+      <div class="finance-card income">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Transactions</span>
+          <span class="finance-value" id="statTxns"><%= transactions.length %></span>
+        </div>
+      </div>
+      <div class="finance-card expenses">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 5h-2v2h2v2h-2v2h2v-2h2V9h-2V7z"/><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Open Tickets</span>
+          <span class="finance-value" id="statTickets"><%= tickets.filter(function(t){return t.status==='open'}).length %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid-2 mb-6">
+      <div class="card">
+        <div class="card-header"><h3>Users by Role</h3></div>
+        <div class="card-body">
+          <div class="chart-container" style="min-height: 220px;">
+            <canvas id="adminRoleChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Monthly Transactions</h3></div>
+        <div class="card-body">
+          <div class="chart-container" style="min-height: 220px;">
+            <canvas id="adminTxnChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="tab-users">Users (<%= users.length %>)</button>
+      <button class="admin-tab" data-tab="tab-transactions">Transactions (<%= transactions.length %>)</button>
+      <button class="admin-tab" data-tab="tab-documents">Documents (<%= documents.length %>)</button>
+      <button class="admin-tab" data-tab="tab-tickets">Tickets (<%= tickets.length %>)</button>
+      <button class="admin-tab" data-tab="tab-uploads">Files (<%= uploads.length %>)</button>
+      <button class="admin-tab" data-tab="tab-audit">Audit Log</button>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-content active" id="tab-users">
+      <div class="card">
+        <div class="card-header"><h3>All Users</h3></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>Username</th><th>Full Name</th><th>Email</th><th>Role</th><th>Account #</th><th>Balance</th><th>Last Login</th><th>Actions</th></tr></thead>
+            <tbody>
+              <% users.forEach(function(u) { %>
+                <tr>
+                  <td><%= u.id %></td>
+                  <td><strong><%= u.username %></strong></td>
+                  <td><%= u.full_name %></td>
+                  <td><%= u.email %></td>
+                  <td>
+                    <form method="POST" action="/admin/users/<%= u.id %>/role" style="display: inline;">
+                      <select name="role" class="form-input" style="width: auto; padding: 3px 6px; font-size: 0.78rem;" onchange="this.form.submit()">
+                        <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>admin</option>
+                        <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>user</option>
+                        <option value="restricted" <%= u.role === 'restricted' ? 'selected' : '' %>>restricted</option>
+                        <option value="guest" <%= u.role === 'guest' ? 'selected' : '' %>>guest</option>
+                      </select>
+                    </form>
+                  </td>
+                  <td><code style="font-size: 0.75rem;"><%= u.account_number %></code></td>
+                  <td class="money">$<%= u.balance ? u.balance.toFixed(2) : '0.00' %></td>
+                  <td style="font-size: 0.78rem; color: var(--text-muted);"><%= u.last_login || 'Never' %></td>
+                  <td>
+                    <div style="display: flex; gap: 4px;">
+                      <a href="/profile/<%= u.id %>" class="btn btn-secondary btn-xs">View</a>
+                      <a href="/reports/generate/<%= u.id %>" class="btn btn-secondary btn-xs">PDF</a>
+                      <% if (u.id !== 1) { %>
+                        <form method="POST" action="/admin/users/<%= u.id %>/delete" style="display: inline;">
+                          <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Delete this user?')">✕</button>
+                        </form>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="tab-content" id="tab-transactions">
+      <div class="card">
+        <div class="card-header"><h3>All Transactions</h3><a href="/api/reports/transactions" class="btn btn-secondary btn-xs" target="_blank">Export JSON</a></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>User</th><th>Type</th><th>Amount</th><th>Description</th><th>Recipient</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              <% transactions.forEach(function(tx) { %>
+                <tr>
+                  <td><%= tx.id %></td><td><%= tx.username %></td>
+                  <td><span class="badge badge-<%= tx.type === 'deposit' ? 'success' : tx.type === 'withdrawal' ? 'danger' : 'info' %>"><%= tx.type %></span></td>
+                  <td class="money">$<%= tx.amount.toFixed(2) %></td>
+                  <td><%= tx.description %></td><td><%= tx.recipient_account || '—' %></td>
+                  <td><span class="badge badge-success"><%= tx.status %></span></td><td><%= tx.created_at %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="tab-content" id="tab-documents">
+      <div class="card">
+        <div class="card-header"><h3>All Documents</h3><a href="/documents?internal=1" class="btn btn-danger btn-xs">Show Internal</a></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Internal</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody>
+              <% documents.forEach(function(doc) { %>
+                <tr>
+                  <td><%= doc.id %></td>
+                  <td><a href="/documents/<%= doc.id %>"><%- doc.title %></a></td>
+                  <td><%= doc.username %></td>
+                  <td><span class="badge badge-info"><%= doc.category %></span></td>
+                  <td><%= doc.is_internal ? '🔒 Yes' : 'No' %></td>
+                  <td><%= doc.created_at %></td>
+                  <td><a href="/documents/<%= doc.id %>" class="btn btn-secondary btn-xs">View</a></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TICKETS -->
+    <div class="tab-content" id="tab-tickets">
+      <div class="card">
+        <div class="card-header"><h3>Support Tickets</h3></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>User</th><th>Subject</th><th>Message</th><th>Priority</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              <% tickets.forEach(function(t) { %>
+                <tr>
+                  <td><%= t.id %></td><td><%= t.username %></td><td><%- t.subject %></td>
+                  <td style="max-width: 250px;" class="truncate"><%- t.message %></td>
+                  <td><span class="badge badge-<%= t.priority === 'high' ? 'danger' : t.priority === 'medium' ? 'warning' : 'info' %>"><%= t.priority %></span></td>
+                  <td><span class="badge badge-<%= t.status === 'open' ? 'warning' : 'success' %>"><%= t.status %></span></td>
+                  <td><%= t.created_at %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOADS -->
+    <div class="tab-content" id="tab-uploads">
+      <div class="card">
+        <div class="card-header"><h3>Uploaded Files</h3><a href="/api/uploads" class="btn btn-secondary btn-xs" target="_blank">API</a></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>User</th><th>Filename</th><th>Type</th><th>Size</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody>
+              <% if (uploads.length > 0) { %>
+                <% uploads.forEach(function(up) { %>
+                  <tr>
+                    <td><%= up.id %></td><td><%= up.username %></td><td><%= up.original_name %></td>
+                    <td><%= up.mime_type %></td><td><%= up.size ? (up.size / 1024).toFixed(1) + ' KB' : 'N/A' %></td>
+                    <td><%= up.created_at %></td>
+                    <td><a href="/uploads/<%= up.filename %>" class="btn btn-secondary btn-xs" target="_blank">Download</a></td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr><td colspan="7" class="text-center" style="color: var(--text-muted);">No files uploaded.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="tab-content" id="tab-audit">
+      <div class="card">
+        <div class="card-header"><h3>Audit Log</h3></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>ID</th><th>User</th><th>Action</th><th>Details</th><th>IP</th><th>Date</th></tr></thead>
+            <tbody>
+              <% if (auditLog.length > 0) { %>
+                <% auditLog.forEach(function(log) { %>
+                  <tr>
+                    <td><%= log.id %></td>
+                    <td><%= log.username || log.user_id %></td>
+                    <td><span class="badge badge-info"><%= log.action %></span></td>
+                    <td style="max-width: 250px;" class="truncate"><%= log.details %></td>
+                    <td><%= log.ip_address %></td>
+                    <td><%= log.created_at %></td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr><td colspan="6" class="text-center" style="color: var(--text-muted);">No audit records.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+
+<script>
+  var adminChartColors = ['#0070ba','#0d8a53','#c22a30','#c5a044','#1a5cc8','#d4850a'];
+
+  function formatCurrency(val) {
+    return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadAdminAnalytics();
+  });
+
+  function loadAdminAnalytics() {
+    fetch('/api/admin/analytics')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        document.getElementById('statBalance').textContent = formatCurrency(data.totalBalance);
+        renderAdminRoleChart(data.usersByRole);
+        renderAdminTxnChart(data.monthlyTransactions);
+      })
+      .catch(function(err) { console.error('Admin analytics error:', err); });
+  }
+
+  function renderAdminRoleChart(roles) {
+    var canvas = document.getElementById('adminRoleChart');
+    if (!canvas || typeof Chart === 'undefined' || !roles || roles.length === 0) return;
+
+    new Chart(canvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: roles.map(function(r) { return r.role; }),
+        datasets: [{
+          data: roles.map(function(r) { return r.count; }),
+          backgroundColor: adminChartColors.slice(0, roles.length),
+          borderWidth: 2, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: { position: 'right', labels: { usePointStyle: true, padding: 12, font: { family: 'Inter', size: 12 } } },
+          tooltip: { backgroundColor: '#1b2a3d', padding: 10, cornerRadius: 6, titleFont: { family: 'Inter' }, bodyFont: { family: 'Inter' } }
+        }
+      }
+    });
+  }
+
+  function renderAdminTxnChart(monthly) {
+    var canvas = document.getElementById('adminTxnChart');
+    if (!canvas || typeof Chart === 'undefined' || !monthly || monthly.length === 0) return;
+
+    var labels = monthly.map(function(m) {
+      var parts = m.month.split('-');
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
+    });
+
+    new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Transactions',
+          data: monthly.map(function(m) { return m.count; }),
+          backgroundColor: '#0070ba',
+          borderRadius: 4, barPercentage: 0.6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: '#1b2a3d', padding: 10, cornerRadius: 6, titleFont: { family: 'Inter' }, bodyFont: { family: 'Inter' } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8e9bb5' } },
+          y: { grid: { color: '#eef1f5' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8e9bb5', stepSize: 1 } }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>

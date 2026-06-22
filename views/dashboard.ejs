@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="description" content="SecureTrust Bank - Your account dashboard. View balances, recent transactions, and manage your finances.">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Dashboard</h1>
+      <p>Account overview</p>
+    </div>
+    <div class="topbar-actions">
+      <span class="secure-icon">🔒 Secure Session</span>
+      <button class="btn btn-primary btn-sm" onclick="openModal('transferModal')">Send Money</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <div>
+        <h2>Good <%= new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening' %>, <%= user.fullName ? user.fullName.split(' ')[0] : user.username %></h2>
+        <p>Here's a summary of your accounts as of <%= new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+      </div>
+      <div class="welcome-actions">
+        <button class="btn-white" onclick="openModal('transferModal')">Transfer Funds</button>
+        <button class="btn-outline-white" onclick="openModal('ticketModal')">Contact Support</button>
+      </div>
+    </div>
+
+    <!-- Account Summary Cards -->
+    <div class="account-grid">
+      <div class="account-card primary">
+        <div class="account-card-label">Available Balance</div>
+        <div class="account-card-value">$<%= currentUser ? currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00' %></div>
+        <div class="account-card-sub">Checking · <%= currentUser ? currentUser.account_number : 'N/A' %></div>
+      </div>
+
+      <div class="account-card accent">
+        <div class="account-card-label">Account Type</div>
+        <div class="account-card-value" style="font-size: 1.2rem; text-transform: capitalize;"><%= currentUser ? (currentUser.role === 'admin' ? 'Premium Business' : currentUser.role === 'restricted' ? 'Basic Savings' : 'Standard Checking') : 'N/A' %></div>
+        <div class="account-card-sub">Status: Active</div>
+      </div>
+
+      <div class="account-card gold">
+        <div class="account-card-label">Total Transactions</div>
+        <div class="account-card-value"><%= recentTransactions ? recentTransactions.length : 0 %></div>
+        <div class="account-card-sub">Recent activity</div>
+      </div>
+
+      <div class="account-card success-bar">
+        <div class="account-card-label">Support Tickets</div>
+        <div class="account-card-value"><%= tickets ? tickets.filter(t => t.status === 'open').length : 0 %> Open</div>
+        <div class="account-card-sub"><%= tickets ? tickets.length : 0 %> total</div>
+      </div>
+    </div>
+
+    <!-- Monthly Financial Metrics -->
+    <div class="finance-metrics" id="financeMetrics">
+      <div class="finance-card income">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">This Month's Income</span>
+          <span class="finance-value" id="currentIncome">$0.00</span>
+          <span class="finance-change" id="incomeChange"></span>
+        </div>
+      </div>
+      <div class="finance-card expenses">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11h-2v2h-2v-2H9v-2h2V9h2v2h2v2z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">This Month's Expenses</span>
+          <span class="finance-value" id="currentExpenses">$0.00</span>
+          <span class="finance-change" id="expenseChange"></span>
+        </div>
+      </div>
+      <div class="finance-card savings">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Net Savings</span>
+          <span class="finance-value" id="netSavings">$0.00</span>
+          <span class="finance-change" id="savingsChange"></span>
+        </div>
+      </div>
+      <div class="finance-card transactions-count">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">This Month's Activity</span>
+          <span class="finance-value" id="monthTransactions">0 txns</span>
+          <span class="finance-change" id="txnChange"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid-2 mb-6">
+      <div class="card">
+        <div class="card-header">
+          <h3>Income vs Expenses</h3>
+          <span class="badge badge-info">Last 6 months</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Spending Breakdown</h3>
+          <span class="badge badge-info">All time</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Recent Transactions -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Transactions</h3>
+          <a href="/reports" class="btn btn-ghost btn-xs">View All →</a>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (recentTransactions && recentTransactions.length > 0) { %>
+                <% recentTransactions.slice(0, 6).forEach(function(tx) { %>
+                  <tr>
+                    <td style="white-space: nowrap;"><%= tx.created_at ? tx.created_at.split(' ')[0] : 'N/A' %></td>
+                    <td class="truncate" style="max-width: 180px;"><%= tx.description %></td>
+                    <td class="money <%= tx.type === 'deposit' ? 'credit' : 'debit' %>">
+                      <%= tx.type === 'deposit' ? '+' : '-' %>$<%= tx.amount.toFixed(2) %>
+                    </td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr><td colspan="4" class="text-center" style="color: var(--text-muted); padding: 28px;">No recent transactions.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Actions & Support -->
+      <div>
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="card-header">
+            <h3>Quick Actions</h3>
+          </div>
+          <div class="card-body" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <a href="/profile" class="btn btn-secondary btn-sm">My Profile</a>
+            <a href="/documents" class="btn btn-secondary btn-sm">Documents</a>
+            <a href="/reports" class="btn btn-secondary btn-sm">Download Statement</a>
+            <a href="/upload" class="btn btn-secondary btn-sm">Upload Files</a>
+            <a href="/search" class="btn btn-secondary btn-sm">Search Accounts</a>
+            <% if (user.role === 'admin') { %>
+            <a href="/admin" class="btn btn-danger btn-sm">Admin Console</a>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Support Tickets</h3>
+            <button class="btn btn-accent btn-xs" onclick="openModal('ticketModal')">New Ticket</button>
+          </div>
+          <div class="card-body">
+            <% if (tickets && tickets.length > 0) { %>
+              <% tickets.forEach(function(ticket) { %>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-light);">
+                  <div>
+                    <strong style="font-size: 0.84rem;"><%- ticket.subject %></strong>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1px;"><%- ticket.message.substring(0, 50) %>...</p>
+                  </div>
+                  <span class="badge badge-<%= ticket.status === 'open' ? 'warning' : 'success' %>"><%= ticket.status %></span>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p style="color: var(--text-muted); font-size: 0.85rem;">No support tickets.</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Transfer Modal -->
+<div class="modal-overlay" id="transferModal">
+  <div class="modal">
+    <h3>Transfer Funds</h3>
+    <form method="POST" action="/transfer">
+      <div class="form-group">
+        <label>Recipient Account Number</label>
+        <input type="text" name="recipient_account" class="form-input" placeholder="e.g. ST-2000-0045-0078" required>
+      </div>
+      <div class="form-group">
+        <label>Amount (USD)</label>
+        <input type="number" name="amount" class="form-input" placeholder="0.00" step="0.01" min="0.01" required>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" name="description" class="form-input" placeholder="Payment description">
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Confirm Transfer</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('transferModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Support Ticket Modal -->
+<div class="modal-overlay" id="ticketModal">
+  <div class="modal">
+    <h3>New Support Ticket</h3>
+    <form method="POST" action="/tickets/create">
+      <div class="form-group">
+        <label>Subject</label>
+        <input type="text" name="subject" class="form-input" placeholder="Brief description of your issue" required>
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea name="message" class="form-input" placeholder="Please describe your issue in detail..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select name="priority" class="form-input">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Submit Ticket</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('ticketModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

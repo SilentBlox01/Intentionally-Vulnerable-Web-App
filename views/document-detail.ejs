@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1><%- document.title %></h1>
+      <p>Document #<%= document.id %> · <%= document.category %></p>
+    </div>
+    <div class="topbar-actions">
+      <a href="/documents" class="btn btn-secondary btn-sm">← Back to Documents</a>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-body">
+        <div class="doc-meta" style="margin-bottom: 14px;">
+          <span>Author: <%= document.full_name %> (@<%= document.username %>)</span>
+          <span>Date: <%= document.created_at %></span>
+          <span class="badge badge-info"><%= document.category %></span>
+          <% if (document.is_internal) { %><span class="badge badge-danger">INTERNAL DOCUMENT</span><% } %>
+        </div>
+        <div class="divider"></div>
+        <div style="line-height: 1.75; font-size: 0.92rem;"><%- document.content %></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Comments (<%= comments ? comments.length : 0 %>)</h3></div>
+      <div class="card-body">
+        <% if (comments && comments.length > 0) { %>
+          <% comments.forEach(function(comment) { %>
+            <div class="comment-block">
+              <div class="cm-header">
+                <div class="user-avatar" style="width: 26px; height: 26px; font-size: 0.65rem;"><%= comment.full_name ? comment.full_name.charAt(0) : 'U' %></div>
+                <span class="cm-author"><%= comment.full_name %></span>
+                <span class="cm-date"><%= comment.created_at %></span>
+              </div>
+              <div class="cm-body"><%- comment.content %></div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <p style="color: var(--text-muted); font-size: 0.85rem;">No comments yet.</p>
+        <% } %>
+
+        <div class="divider"></div>
+        <form method="POST" action="/documents/<%= document.id %>/comment">
+          <div class="form-group"><label>Add a Comment</label><textarea name="content" class="form-input" placeholder="Write your comment..." required></textarea></div>
+          <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

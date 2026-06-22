@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Reports & Analytics</h1>
+      <p>Financial insights and data export</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-success btn-sm" onclick="exportExcel()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm2-6h1.5v6H13V9zm4 4.5c0 .83-.67 1.5-1.5 1.5H14v-1.5h1.5v-1H14V11h1.5V9.5H14V8h2v4.5z"/></svg>
+        Export Excel
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="exportPDF()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+        Download PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- Filters -->
+    <div class="card mb-6">
+      <div class="card-header">
+        <h3>Filters</h3>
+        <button class="btn btn-ghost btn-xs" onclick="resetFilters()">Reset</button>
+      </div>
+      <div class="card-body">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+            <label>User ID (optional)</label>
+            <input type="number" id="filterUserId" class="form-input" placeholder="All users" min="1">
+          </div>
+          <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+            <label>From Date</label>
+            <input type="date" id="filterFrom" class="form-input">
+          </div>
+          <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+            <label>To Date</label>
+            <input type="date" id="filterTo" class="form-input">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="applyFilters()" style="height: 38px;">Apply Filters</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="finance-metrics mb-6">
+      <div class="finance-card income">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Income</span>
+          <span class="finance-value" id="totalIncome">$0.00</span>
+        </div>
+      </div>
+      <div class="finance-card expenses">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11h-2v2h-2v-2H9v-2h2V9h2v2h2v2z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Expenses</span>
+          <span class="finance-value" id="totalExpenses">$0.00</span>
+        </div>
+      </div>
+      <div class="finance-card savings">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Net Savings</span>
+          <span class="finance-value" id="netSavings">$0.00</span>
+        </div>
+      </div>
+      <div class="finance-card transactions-count">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Transactions</span>
+          <span class="finance-value" id="totalTxns">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid-2 mb-6">
+      <div class="card">
+        <div class="card-header">
+          <h3>Monthly Income vs Expenses</h3>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="reportsTrendChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Spending by Category</h3>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="reportsCategoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Transaction Details</h3>
+        <span class="badge badge-info" id="txnCount">0 records</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>User</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Description</th>
+              <th>Recipient</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsBody">
+            <tr><td colspan="7" class="text-center" style="color: var(--text-muted); padding: 28px;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+
+<script>
+  var reportChartColors = ['#0070ba','#0d8a53','#c22a30','#c5a044','#1a5cc8','#d4850a','#6b21a8','#516580','#005ea6','#339ed4'];
+  var trendChartInstance = null;
+  var categoryChartInstance = null;
+
+  function formatCurrency(val) {
+    return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function getFilterParams() {
+    var params = new URLSearchParams();
+    var userId = document.getElementById('filterUserId').value;
+    var from = document.getElementById('filterFrom').value;
+    var to = document.getElementById('filterTo').value;
+    if (userId) params.set('userId', userId);
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return params.toString();
+  }
+
+  function applyFilters() {
+    loadAnalytics();
+  }
+
+  function resetFilters() {
+    document.getElementById('filterUserId').value = '';
+    document.getElementById('filterFrom').value = '';
+    document.getElementById('filterTo').value = '';
+    loadAnalytics();
+  }
+
+  function exportExcel() {
+    var params = getFilterParams();
+    window.location.href = '/reports/export/excel' + (params ? '?' + params : '');
+  }
+
+  function exportPDF() {
+    var userId = document.getElementById('filterUserId').value;
+    window.location.href = '/reports/generate' + (userId ? '/' + userId : '');
+  }
+
+  function loadAnalytics() {
+    var params = getFilterParams();
+    fetch('/api/reports/analytics' + (params ? '?' + params : ''))
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        updateSummaryCards(data.summary);
+        renderReportsTrendChart(data.monthlyTrend);
+        renderReportsCategoryChart(data.categoryBreakdown);
+        renderTransactionsTable(data.transactions);
+      })
+      .catch(function(err) {
+        console.error('Failed to load analytics:', err);
+      });
+  }
+
+  function updateSummaryCards(summary) {
+    if (!summary) return;
+    var net = summary.totalIncome - summary.totalExpenses;
+    document.getElementById('totalIncome').textContent = formatCurrency(summary.totalIncome);
+    document.getElementById('totalExpenses').textContent = formatCurrency(summary.totalExpenses);
+    document.getElementById('netSavings').textContent = formatCurrency(net);
+    document.getElementById('totalTxns').textContent = summary.totalTransactions;
+  }
+
+  function renderReportsTrendChart(trend) {
+    var canvas = document.getElementById('reportsTrendChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (trendChartInstance) trendChartInstance.destroy();
+    if (!trend || trend.length === 0) return;
+
+    var labels = trend.map(function(t) {
+      var parts = t.month.split('-');
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
+    });
+
+    trendChartInstance = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Income',
+            data: trend.map(function(t) { return t.income; }),
+            borderColor: '#0d8a53',
+            backgroundColor: 'rgba(13,138,83,0.1)',
+            fill: true, tension: 0.35,
+            pointBackgroundColor: '#0d8a53', pointRadius: 4, borderWidth: 2.5
+          },
+          {
+            label: 'Expenses',
+            data: trend.map(function(t) { return t.expenses; }),
+            borderColor: '#c22a30',
+            backgroundColor: 'rgba(194,42,48,0.08)',
+            fill: true, tension: 0.35,
+            pointBackgroundColor: '#c22a30', pointRadius: 4, borderWidth: 2.5
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 12, family: 'Inter' } } },
+          tooltip: {
+            backgroundColor: '#1b2a3d', padding: 12, cornerRadius: 8,
+            titleFont: { family: 'Inter', size: 12 }, bodyFont: { family: 'Inter', size: 12 },
+            callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatCurrency(ctx.parsed.y); } }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8e9bb5' } },
+          y: { grid: { color: '#eef1f5' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8e9bb5', callback: function(v) { return '$' + v.toLocaleString(); } } }
+        }
+      }
+    });
+  }
+
+  function renderReportsCategoryChart(breakdown) {
+    var canvas = document.getElementById('reportsCategoryChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (categoryChartInstance) categoryChartInstance.destroy();
+    if (!breakdown || breakdown.length === 0) return;
+
+    var filtered = breakdown.filter(function(b) { return b.type !== 'deposit'; });
+    if (filtered.length === 0) filtered = breakdown;
+
+    categoryChartInstance = new Chart(canvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: filtered.map(function(b) { return b.description || 'Other'; }),
+        datasets: [{
+          data: filtered.map(function(b) { return b.total; }),
+          backgroundColor: reportChartColors.slice(0, filtered.length),
+          borderWidth: 2, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              usePointStyle: true, padding: 12, font: { family: 'Inter', size: 11 },
+              generateLabels: function(chart) {
+                var data = chart.data;
+                return data.labels.map(function(label, i) {
+                  return {
+                    text: label.length > 20 ? label.substring(0, 20) + '...' : label,
+                    fillStyle: data.datasets[0].backgroundColor[i],
+                    strokeStyle: 'transparent', pointStyle: 'circle', hidden: false, index: i
+                  };
+                });
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#1b2a3d', padding: 12, cornerRadius: 8,
+            titleFont: { family: 'Inter', size: 12 }, bodyFont: { family: 'Inter', size: 12 },
+            callbacks: {
+              label: function(ctx) {
+                var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                var pct = ((ctx.parsed / total) * 100).toFixed(1);
+                return ctx.label + ': ' + formatCurrency(ctx.parsed) + ' (' + pct + '%)';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function renderTransactionsTable(transactions) {
+    var tbody = document.getElementById('transactionsBody');
+    var countEl = document.getElementById('txnCount');
+    if (!tbody) return;
+
+    if (!transactions || transactions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color: var(--text-muted); padding: 28px;">No transactions found.</td></tr>';
+      if (countEl) countEl.textContent = '0 records';
+      return;
+    }
+
+    if (countEl) countEl.textContent = transactions.length + ' records';
+
+    var html = '';
+    transactions.forEach(function(tx) {
+      var typeClass = tx.type === 'deposit' ? 'success' : tx.type === 'withdrawal' ? 'danger' : 'info';
+      var amountClass = tx.type === 'deposit' ? 'credit' : 'debit';
+      var amountPrefix = tx.type === 'deposit' ? '+' : '-';
+      html += '<tr>';
+      html += '<td style="white-space: nowrap;">' + (tx.created_at || 'N/A') + '</td>';
+      html += '<td>' + (tx.username || '') + '</td>';
+      html += '<td><span class="badge badge-' + typeClass + '">' + tx.type + '</span></td>';
+      html += '<td class="money ' + amountClass + '">' + amountPrefix + '$' + tx.amount.toFixed(2) + '</td>';
+      html += '<td class="truncate" style="max-width: 180px;">' + (tx.description || '') + '</td>';
+      html += '<td>' + (tx.recipient_account || '—') + '</td>';
+      html += '<td><span class="badge badge-success">' + (tx.status || '') + '</span></td>';
+      html += '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadAnalytics();
+  });
+</script>
+</body>
+</html>

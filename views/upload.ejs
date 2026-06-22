@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Upload Documents</h1>
+      <p>Upload files to your secure bank vault</p>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <% if (success) { %><div class="alert alert-success">✓ <%= success %></div><% } %>
+    <% if (error) { %><div class="alert alert-danger">⚠ <%= error %></div><% } %>
+
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-body">
+        <form method="POST" action="/upload" enctype="multipart/form-data" id="uploadForm">
+          <div class="upload-zone">
+            <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+            <h3>Drag and drop your files here</h3>
+            <p>or click to browse files</p>
+            <p style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted);">Accepted formats: PDF, DOC, JPG, PNG, CSV (max 10MB)</p>
+            <input type="file" name="file" id="fileInput" style="display: none;">
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>My Uploaded Files</h3></div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Filename</th><th>Type</th><th>Size</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody>
+            <% if (uploads && uploads.length > 0) { %>
+              <% uploads.forEach(function(file) { %>
+                <tr>
+                  <td><strong><%= file.original_name %></strong></td>
+                  <td><%= file.mime_type %></td>
+                  <td><%= file.size ? (file.size / 1024).toFixed(1) + ' KB' : 'N/A' %></td>
+                  <td><%= file.created_at %></td>
+                  <td><a href="/uploads/<%= file.filename %>" class="btn btn-secondary btn-xs" target="_blank">Download</a></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr><td colspan="5" class="text-center" style="color: var(--text-muted); padding: 28px;">No files uploaded yet.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

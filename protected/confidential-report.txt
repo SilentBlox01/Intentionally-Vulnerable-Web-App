@@ -1,0 +1,42 @@
+========================================
+SECURETRUST BANK - INFORME CONFIDENCIAL
+Reporte de Auditoría Interna Q1 2024
+========================================
+
+HALLAZGOS CRÍTICOS:
+
+1. [CRÍTICO] Las contraseñas de usuarios se almacenan en texto plano
+   en la base de datos sin ningún tipo de hash o cifrado.
+
+2. [CRÍTICO] El endpoint /api/debug expone toda la configuración
+   del servidor, incluyendo claves API de producción.
+
+3. [ALTO] No existe validación de archivos en la funcionalidad
+   de carga. Se pueden subir archivos ejecutables.
+
+4. [ALTO] Las consultas SQL se construyen por concatenación
+   de strings, permitiendo inyección SQL en múltiples endpoints.
+
+5. [ALTO] No hay tokens CSRF en ningún formulario de la aplicación.
+
+6. [MEDIO] Las cookies de sesión no tienen flags httpOnly ni secure.
+
+7. [MEDIO] Los mensajes de error revelan información interna
+   del sistema, incluyendo consultas SQL y stack traces.
+
+INFORMACIÓN INTERNA:
+- Servidor de base de datos: 192.168.1.50:5432
+- Servidor de correo: 10.0.0.25:587
+- API interna: http://10.0.0.100:8080/api/v1
+- Servidor de backups: 192.168.1.200
+
+CREDENCIALES DE SERVICIO:
+- Monitoring: grafana_admin / Gr@f4n4!2024
+- CI/CD: jenkins_admin / J3nk1ns@Prod
+- Container Registry: registry_svc / R3g1stry2024!
+
+========================================
+NOTA: Este documento es estrictamente
+confidencial. Si puedes acceder a él,
+reporta el hallazgo inmediatamente.
+========================================

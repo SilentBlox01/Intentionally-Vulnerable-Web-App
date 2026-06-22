@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="description" content="SecureTrust Bank - Secure online banking. Access your accounts 24/7.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-hero">
+    <div class="hero-content">
+      <div class="hero-logo">
+        <div class="hero-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zm-4.5-9L2 6v2h19V6l-9.5-5z"/></svg>
+        </div>
+        <span>SecureTrust Bank</span>
+      </div>
+      <h2>Banking made simple, secure, and smart.</h2>
+      <p>Manage your finances with confidence. Our online banking platform gives you full control over your accounts, transfers, and documents — anytime, anywhere.</p>
+      <ul class="hero-features">
+        <li>
+          <span class="check-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+          256-bit SSL encrypted transactions
+        </li>
+        <li>
+          <span class="check-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+          Real-time fraud monitoring & alerts
+        </li>
+        <li>
+          <span class="check-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+          FDIC insured up to $250,000
+        </li>
+        <li>
+          <span class="check-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+          24/7 customer support
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="auth-form-side">
+    <div class="auth-form-header">
+      <h1>Sign In</h1>
+      <p>Access your SecureTrust Bank account</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-danger">⚠ <%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/login" id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" class="form-input" placeholder="Enter your username" required autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
+      </div>
+      <div class="flex-between" style="margin-bottom: 20px;">
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-secondary); cursor: pointer;">
+          <input type="checkbox" style="accent-color: var(--primary);"> Remember me
+        </label>
+        <a href="#" style="font-size: 0.82rem; font-weight: 500;">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Don't have an account? <a href="/register">Open an account</a></p>
+    </div>
+
+    <div class="auth-trust">
+      <span>🔒 SSL Secured</span>
+      <span>🏦 FDIC Insured</span>
+      <span>🛡️ PCI Compliant</span>
+    </div>
+  </div>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>

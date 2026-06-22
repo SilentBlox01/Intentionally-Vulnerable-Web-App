@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1>Customer Profile</h1>
+      <p>Account information & personal details</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="/reports/generate/<%= profileUser.id %>" class="btn btn-secondary btn-sm">Download PDF Statement</a>
+      <button class="btn btn-primary btn-sm" onclick="openModal('editModal')">Edit Profile</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="profile-banner">
+        <div class="profile-avatar-lg"><%= profileUser.full_name ? profileUser.full_name.charAt(0).toUpperCase() : 'U' %></div>
+        <div class="profile-info">
+          <h2><%= profileUser.full_name %></h2>
+          <p>@<%= profileUser.username %> · <span class="badge badge-<%= profileUser.role %>" style="vertical-align: middle;"><%= profileUser.role %></span>
+            <% var userStatus = profileUser.status || 'active'; %>
+            <span class="badge badge-<%= userStatus === 'active' ? 'success' : userStatus === 'suspended' ? 'danger' : 'warning' %>" style="vertical-align: middle; margin-left: 4px;"><%= userStatus %></span>
+          </p>
+          <p style="margin-top: 4px; opacity: 0.65; font-size: 0.8rem;">Account: <%= profileUser.account_number %></p>
+        </div>
+      </div>
+      <div class="profile-grid">
+        <div class="profile-field">
+          <label>Full Name</label>
+          <span><%= profileUser.full_name %></span>
+        </div>
+        <div class="profile-field">
+          <label>Username</label>
+          <span><%= profileUser.username %></span>
+        </div>
+        <div class="profile-field">
+          <label>Email Address</label>
+          <span><%= profileUser.email %></span>
+        </div>
+        <div class="profile-field">
+          <label>Phone Number</label>
+          <span><%= profileUser.phone %></span>
+        </div>
+        <div class="profile-field">
+          <label>Mailing Address</label>
+          <span><%= profileUser.address %></span>
+        </div>
+        <div class="profile-field">
+          <label>Available Balance</label>
+          <span class="money credit" style="font-size: 1.1rem;">$<%= profileUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2}) %></span>
+        </div>
+        <div class="profile-field">
+          <label>Account Role</label>
+          <span><%= profileUser.role %></span>
+        </div>
+        <div class="profile-field">
+          <label>Account Status</label>
+          <span class="badge badge-<%= userStatus === 'active' ? 'success' : userStatus === 'suspended' ? 'danger' : 'warning' %>"><%= userStatus %></span>
+        </div>
+        <div class="profile-field">
+          <label>Last Login</label>
+          <span><%= profileUser.last_login || 'Never' %></span>
+        </div>
+        <div class="profile-field">
+          <label>Member Since</label>
+          <span><%= profileUser.created_at %></span>
+        </div>
+        <div class="profile-field" style="grid-column: 1 / -1;">
+          <label>Biography</label>
+          <span><%- profileUser.bio %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Summary Cards -->
+    <% 
+      var totalIncome = 0, totalExpenses = 0, txnCount = transactions ? transactions.length : 0;
+      if (transactions) {
+        transactions.forEach(function(tx) {
+          if (tx.type === 'deposit') totalIncome += tx.amount;
+          else totalExpenses += tx.amount;
+        });
+      }
+    %>
+    <div class="finance-metrics mb-6">
+      <div class="finance-card income">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Deposits</span>
+          <span class="finance-value">$<%= totalIncome.toLocaleString('en-US', {minimumFractionDigits: 2}) %></span>
+        </div>
+      </div>
+      <div class="finance-card expenses">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11h-2v2h-2v-2H9v-2h2V9h2v2h2v2z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Withdrawals</span>
+          <span class="finance-value">$<%= totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 2}) %></span>
+        </div>
+      </div>
+      <div class="finance-card transactions-count">
+        <div class="finance-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+        </div>
+        <div class="finance-info">
+          <span class="finance-label">Total Transactions</span>
+          <span class="finance-value"><%= txnCount %></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Transaction History</h3>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <% if (transactions && transactions.length > 0) { %>
+              <% transactions.forEach(function(tx) { %>
+                <tr>
+                  <td><%= tx.created_at %></td>
+                  <td><span class="badge badge-<%= tx.type === 'deposit' ? 'success' : tx.type === 'withdrawal' ? 'danger' : 'info' %>"><%= tx.type %></span></td>
+                  <td class="money <%= tx.type === 'deposit' ? 'credit' : 'debit' %>"><%= tx.type === 'deposit' ? '+' : '-' %>$<%= tx.amount.toFixed(2) %></td>
+                  <td><%= tx.description %></td>
+                  <td><span class="badge badge-success"><%= tx.status %></span></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr><td colspan="5" class="text-center" style="color: var(--text-muted);">No transactions found.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit Profile</h3>
+    <form method="POST" action="/profile/<%= profileUser.id %>/update">
+      <div class="form-group"><label>Full Name</label><input type="text" name="full_name" class="form-input" value="<%= profileUser.full_name %>"></div>
+      <div class="form-group"><label>Email</label><input type="email" name="email" class="form-input" value="<%= profileUser.email %>"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone</label><input type="text" name="phone" class="form-input" value="<%= profileUser.phone %>"></div>
+        <div class="form-group"><label>Address</label><input type="text" name="address" class="form-input" value="<%= profileUser.address %>"></div>
+      </div>
+      <div class="form-group">
+        <label>Biography</label>
+        <textarea name="bio" class="form-input"><%= profileUser.bio %></textarea>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

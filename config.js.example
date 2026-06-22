@@ -1,0 +1,62 @@
+// ============================================
+// SecureTrust Bank - Application Configuration
+// NOTA INTERNA: No compartir este archivo
+// ============================================
+
+const constants = require('./config/constants');
+
+module.exports = {
+  // Database
+  DB_PATH: './database/bank.db',
+
+  // Session - VULNERABILITY: Hardcoded secret
+  SESSION_SECRET: 'securetrust-bank-secret-key-2024',
+
+  // Server
+  PORT: 3000,
+  HOST: 'localhost',
+
+  // Admin credentials - VULNERABILITY: Hardcoded in source
+  ADMIN_USERNAME: 'admin',
+  ADMIN_PASSWORD: 'admin123',
+
+  // API Keys - VULNERABILITY: Hardcoded secrets
+  STRIPE_SECRET_KEY: 'sk_test_51ABC123DEF456GHI789JKL0MNO',
+  STRIPE_PUBLIC_KEY: 'pk_test_51ABC123DEF456GHI789JKL0MNO',
+  AWS_ACCESS_KEY_ID: 'AKIAIOSFODNN7EXAMPLE',
+  AWS_SECRET_ACCESS_KEY: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+  SENDGRID_API_KEY: 'SG.xxxxxxxxxxxxxxxxxxxx.yyyyyyyyyyyyyyyyyyyyyyyyyyy',
+
+  // JWT Secret - VULNERABILITY: Weak, hardcoded
+  JWT_SECRET: 'bank123',
+
+  // Email config
+  SMTP_HOST: 'smtp.securetrust-bank.com',
+  SMTP_USER: 'noreply@securetrust-bank.com',
+  SMTP_PASS: 'EmailP@ss2024!',
+
+  // Internal endpoints
+  INTERNAL_API: 'http://internal-api.securetrust.local:8080',
+  DEBUG_MODE: true,
+
+  // Constants (non-secret values)
+  MAX_TRANSACTIONS_LIST: constants.MAX_TRANSACTIONS_LIST,
+  MAX_AUDIT_LOG: constants.MAX_AUDIT_LOG,
+  MAX_API_RESULTS: constants.MAX_API_RESULTS,
+  MAX_DOCUMENTS_LIST: constants.MAX_DOCUMENTS_LIST,
+  MAX_UPLOADS_LIST: constants.MAX_UPLOADS_LIST,
+  MAX_SEARCH_RESULTS: constants.MAX_SEARCH_RESULTS,
+  BACKUP_INTERVAL_MS: constants.BACKUP_INTERVAL_MS,
+  BACKUP_INITIAL_DELAY_MS: constants.BACKUP_INITIAL_DELAY_MS,
+  SESSION_MAX_AGE_MS: constants.SESSION_MAX_AGE_MS,
+  DEFAULT_BALANCE: constants.DEFAULT_BALANCE,
+  MIN_TRANSFER_AMOUNT: constants.MIN_TRANSFER_AMOUNT,
+  MAX_TRANSFER_AMOUNT: constants.MAX_TRANSFER_AMOUNT,
+  MIN_PASSWORD_LENGTH: constants.MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH: constants.MAX_PASSWORD_LENGTH,
+  MIN_USERNAME_LENGTH: constants.MIN_USERNAME_LENGTH,
+  MAX_USERNAME_LENGTH: constants.MAX_USERNAME_LENGTH,
+  USERNAME_PATTERN: constants.USERNAME_PATTERN,
+  MAX_FILE_SIZE_BYTES: constants.MAX_FILE_SIZE_BYTES,
+  ALLOWED_UPLOAD_TYPES: constants.ALLOWED_UPLOAD_TYPES
+};
