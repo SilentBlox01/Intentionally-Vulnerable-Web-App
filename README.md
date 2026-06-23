@@ -184,12 +184,15 @@ The server will start at **http://localhost:3000** and display available test ac
 
 ## Deployment
 
+### GitHub Repository
+You can find the official repository and contribute at:
+👉 **[GitHub: SilentBlox01/Intentionally-Vulnerable-Web-App](https://github.com/SilentBlox01/Intentionally-Vulnerable-Web-App)**
+
 ### 1-Click Deploy to Replit
 
-You can easily run this application in Replit. Just import the GitHub repository URL into Replit, and the provided `.replit` and `replit.nix` configurations will automatically install dependencies and start the app.
+You can easily run this application in Replit. Just import the GitHub repository URL into Replit, and the provided `.replit` and `replit.nix` configurations will automatically install dependencies and compile native modules to start the app.
 
-[![Run on Replit](https://replit.com/badge/github/TU_USUARIO/TU_REPOSITORIO)](https://replit.com/new/github/TU_USUARIO/TU_REPOSITORIO)
-*(Remember to replace `TU_USUARIO/TU_REPOSITORIO` with your actual GitHub repository once uploaded)*
+[![Run on Replit](https://replit.com/badge/github/SilentBlox01/Intentionally-Vulnerable-Web-App)](https://replit.com/new/github/SilentBlox01/Intentionally-Vulnerable-Web-App)
 
 ### Deploy with Docker
 
