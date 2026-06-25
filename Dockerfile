@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-slim
 
 # Create app directory
 WORKDIR /app
@@ -6,6 +6,9 @@ WORKDIR /app
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
+
+# Install build dependencies for native modules (better-sqlite3)
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 RUN npm install

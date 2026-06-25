@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node server.js",
     "test": "jest --forceExit --detectOpenHandles",
-    "test:coverage": "jest --forceExit --detectOpenHandles --coverage"
+    "test:coverage": "jest --forceExit --detectOpenHandles --coverage",
+    "lab": "node lab.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
@@ -16,6 +17,7 @@
     "exceljs": "^4.4.0",
     "express": "^4.21.0",
     "express-session": "^1.18.1",
+    "inquirer": "^8.2.7",
     "multer": "^1.4.5-lts.1",
     "pdfkit": "^0.15.1"
   },

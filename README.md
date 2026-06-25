@@ -323,17 +323,34 @@ npm run test:coverage
 
 ---
 
+## Interactive Learning Lab
+
+We have built a dedicated **Terminal-based Interactive Laboratory** that guides you step-by-step through discovering, exploiting, and mitigating the 8 main vulnerabilities within the running application.
+
+To start the lab:
+```bash
+npm run lab
+```
+
+### Lab Modules Included:
+1. SQL Injection (SQLi)
+2. Cross-Site Scripting (XSS)
+3. Cross-Site Request Forgery (CSRF)
+4. Broken Access Control
+5. Insecure Session Management
+6. Sensitive Data Exposure
+7. Insecure Direct Object Reference (IDOR)
+8. Insecure File Upload
+
+---
+
 ## Interactive Tutorial
 
-Run the interactive terminal tutorial:
+Run the basic interactive terminal tutorial:
 
 ```bash
 node tutorial.js
 ```
-
-This guides you through the application features and architecture.
-
----
 
 ## Intentional Vulnerabilities
 
