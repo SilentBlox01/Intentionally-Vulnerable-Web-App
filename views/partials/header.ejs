@@ -52,6 +52,20 @@
           <div class="user-role"><%= user.role %></div>
         </div>
       </div>
+      <button id="reset-db-btn" class="logout-link" style="color: #ff4d4d; border: 1px solid #ff4d4d; background: transparent; width: 100%; margin-bottom: 10px; cursor: pointer;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="margin-right: 10px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg> <span>Reset Database</span>
+      </button>
+      <script>
+        document.getElementById('reset-db-btn').addEventListener('click', async () => {
+          if (confirm('Are you sure you want to reset the database? This will clear all changes and re-seed default data.')) {
+            try {
+              const res = await fetch('/api/reset-db', { method: 'POST' });
+              if (res.ok) { alert('Database reset successfully.'); window.location.href = '/login'; }
+              else { alert('Failed to reset database.'); }
+            } catch (err) { alert('Error: ' + err.message); }
+          }
+        });
+      </script>
       <a href="/logout" class="logout-link"><%- svgIcons.logout %> <span>Sign Out</span></a>
     </div>
   </aside>

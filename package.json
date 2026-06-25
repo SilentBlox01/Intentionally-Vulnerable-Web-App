@@ -8,7 +8,10 @@
     "dev": "node server.js",
     "test": "jest --forceExit --detectOpenHandles",
     "test:coverage": "jest --forceExit --detectOpenHandles --coverage",
-    "lab": "node lab.js"
+    "lab": "node lab.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "verify-fixes": "jest __tests__/security.test.js --forceExit"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
@@ -22,7 +25,11 @@
     "pdfkit": "^0.15.1"
   },
   "devDependencies": {
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
     "jest": "^29.7.0",
+    "prettier": "^3.8.4",
     "supertest": "^6.3.3"
   }
 }

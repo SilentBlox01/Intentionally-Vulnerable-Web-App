@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config');
-const initializeDatabase = require('./database/init');
+const { initializeDatabase, resetDatabase } = require('./database/init');
 
 const app = express();
 
@@ -96,6 +96,16 @@ app.use('/', documentRoutes);
 app.use('/', adminRoutes);
 app.use('/', uploadRoutes);
 app.use('/', reportRoutes);
+
+// Reset Database Endpoint
+app.post('/api/reset-db', (req, res) => {
+  try {
+    resetDatabase(db);
+    res.json({ success: true, message: 'Database reset successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // Home redirect
 app.get('/', (req, res) => {

@@ -3,13 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const config = require('../config');
 
-function initializeDatabase() {
+function initializeDatabase(existingDb) {
   const dbDir = path.dirname(config.DB_PATH);
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  const db = new Database(config.DB_PATH);
+  const db = existingDb || new Database(config.DB_PATH);
 
   // Enable WAL mode for performance
   db.pragma('journal_mode = WAL');
@@ -255,4 +255,20 @@ function initializeDatabase() {
   return db;
 }
 
-module.exports = initializeDatabase;
+function resetDatabase(db) {
+  db.exec(`
+    DROP TABLE IF EXISTS audit_log;
+    DROP TABLE IF EXISTS uploads;
+    DROP TABLE IF EXISTS tickets;
+    DROP TABLE IF EXISTS comments;
+    DROP TABLE IF EXISTS documents;
+    DROP TABLE IF EXISTS transactions;
+    DROP TABLE IF EXISTS users;
+  `);
+  return initializeDatabase(db);
+}
+
+module.exports = {
+  initializeDatabase,
+  resetDatabase
+};
