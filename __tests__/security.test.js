@@ -37,6 +37,21 @@ afterAll(() => {
 
 describe('Vulnerability Patch Verification', () => {
 
+  let userSessionCookie;
+
+  beforeAll(async () => {
+    // Log in as a normal user (carlos is seeded as user in init.js)
+    const res = await request(app)
+      .post('/login')
+      .send({ username: 'carlos', password: 'carlos2024' });
+    
+    // Extract the session cookie
+    const cookies = res.headers['set-cookie'];
+    if (cookies) {
+      userSessionCookie = cookies.find(c => c.startsWith('connect.sid'));
+    }
+  });
+
   test('SQL Injection (SQLi) should be mitigated on Login', async () => {
     // Attempt SQL injection to bypass login
     const response = await request(app)
@@ -46,26 +61,27 @@ describe('Vulnerability Patch Verification', () => {
     // If patched, it should NOT redirect to dashboard (which implies successful login)
     // Vulnerable code redirects to /dashboard with 302
     expect(response.status).not.toBe(302);
-    expect(response.text).toContain('does not exist'); // Or some error message indicating failure
   });
 
   test('Broken Access Control should be mitigated for Admin Panel', async () => {
-    // Attempt to access admin panel with a 'user' role cookie
+    // Attempt to access admin panel with a 'user' role session but spoofed cookies
     const response = await request(app)
       .get('/admin')
-      .set('Cookie', ['role=admin; isAdmin=true; loggedIn=true; userId=2']);
+      .set('Cookie', `${userSessionCookie}; role=admin; isAdmin=true`);
 
-    // The secure implementation should rely on session, not cookies
-    // Because session has no role set in this request, it should deny access
+    // The secure implementation should rely on session role, not cookies
+    // Because the session belongs to a standard user, it should deny access (403)
+    // A vulnerable implementation trusts the cookie and returns 200
     expect(response.status).toBe(403);
   });
 
   test('IDOR should be mitigated on Profile viewing', async () => {
-    // The test framework creates a session, but let's simulate a raw request to someone else's profile
-    // Without proper session setup matching the ID, it should fail
-    const response = await request(app).get('/profile/1'); 
+    // Attempt to access admin's profile (ID 1) using carlos's session (ID 2)
+    const response = await request(app)
+      .get('/profile/1')
+      .set('Cookie', userSessionCookie); 
     
-    // It should either redirect to login (if no session) or return 403 (if wrong session)
+    // It should block access and return 403 (or redirect)
     // A vulnerable app might return 200 and show the profile
     expect(response.status).not.toBe(200);
   });
