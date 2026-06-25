@@ -25,6 +25,10 @@ beforeAll(() => {
     saveUninitialized: true
   }));
 
+  const path = require('path');
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(__dirname, '../views'));
+
   app.use('/', authRoutes(db));
   app.use('/', userRoutes(db));
   app.use('/', adminRoutes(db));
@@ -45,10 +49,13 @@ describe('Vulnerability Patch Verification', () => {
       .post('/login')
       .send({ username: 'carlos', password: 'carlos2024' });
     
-    // Extract the session cookie
+    // Extract the session cookie and strip the attributes (Path, HttpOnly, etc.)
     const cookies = res.headers['set-cookie'];
     if (cookies) {
-      userSessionCookie = cookies.find(c => c.startsWith('connect.sid'));
+      const fullCookie = cookies.find(c => c.startsWith('connect.sid'));
+      if (fullCookie) {
+        userSessionCookie = fullCookie.split(';')[0];
+      }
     }
   });
 
