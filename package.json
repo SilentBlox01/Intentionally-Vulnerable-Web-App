@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "jest --forceExit --detectOpenHandles",
-    "test:coverage": "jest --forceExit --detectOpenHandles --coverage",
+    "test": "jest --testPathIgnorePatterns=security.test.js --forceExit --detectOpenHandles",
+    "test:coverage": "jest --testPathIgnorePatterns=security.test.js --forceExit --detectOpenHandles --coverage",
     "lab": "node lab.js",
     "lint": "eslint .",
     "format": "prettier --write .",

@@ -1,6 +1,6 @@
 const request = require('supertest');
 const express = require('express');
-const initializeDatabase = require('../database/init');
+const { initializeDatabase } = require('../database/init');
 const authRoutes = require('../routes/auth');
 const userRoutes = require('../routes/users');
 const adminRoutes = require('../routes/admin');
