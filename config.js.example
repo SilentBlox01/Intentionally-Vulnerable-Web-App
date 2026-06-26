@@ -1,6 +1,6 @@
 // ============================================
 // SecureTrust Bank - Application Configuration
-// NOTA INTERNA: No compartir este archivo
+// INTERNAL NOTE: Do not share this file
 // ============================================
 
 const constants = require('./config/constants');

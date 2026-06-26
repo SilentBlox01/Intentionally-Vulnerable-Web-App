@@ -141,7 +141,7 @@ function initializeDatabase(existingDb) {
     // Admin user
     insertUser.run(
       'admin', 'admin123',
-      'admin@securetrust-bank.com', 'Carlos Administrador',
+      'admin@securetrust-bank.com', 'Carlos Administrator',
       '+1-555-0100', '123 Admin Street, Suite 100',
       'SecureTrust banking system administrator.',
       'admin', 'ST-1000-0001-0001', 1000000.00

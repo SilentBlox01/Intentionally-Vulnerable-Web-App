@@ -1,6 +1,6 @@
-Este directorio contiene respaldos automáticos de la base de datos.
+This directory contains automatic database backups.
 
-NOTA: Este directorio no debería ser accesible desde la web.
-Si puedes leer este archivo, hay una vulnerabilidad de configuración.
+NOTE: This directory should not be accessible from the web.
+If you can read this file, there is a configuration vulnerability.
 
 🚩 FLAG{b4ckup_d1r3ct0ry_3xp0s3d}
