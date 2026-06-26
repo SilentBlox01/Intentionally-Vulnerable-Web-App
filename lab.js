@@ -1,4 +1,5 @@
 const inquirer = require('inquirer');
+const { exec } = require('child_process');
 
 const colors = {
   reset: "\x1b[0m",
@@ -19,6 +20,60 @@ function printHeader() {
   console.log(`\n${colors.cyan}${colors.bright}╔══════════════════════════════════════════════════════╗${colors.reset}`);
   console.log(`${colors.cyan}${colors.bright}║      Intentionally Vulnerable Web App - Learning Lab ║${colors.reset}`);
   console.log(`${colors.cyan}${colors.bright}╚══════════════════════════════════════════════════════╝${colors.reset}\n`);
+}
+
+const tutorialSteps = [
+  {
+    title: "Welcome to SecureTrust Bank Tutorial",
+    content: "SecureTrust Bank is a full-stack web application built with Node.js, Express, and SQLite.\nIt simulates a modern online banking environment."
+  },
+  {
+    title: "Application Architecture",
+    content: "The application uses a monolithic architecture:\n- Frontend: HTML, CSS, Vanilla JS, and EJS templates.\n- Backend: Node.js with Express.\n- Database: SQLite (via better-sqlite3) for fast, file-based data storage."
+  },
+  {
+    title: "Key Features",
+    content: "1. User Authentication (Login / Registration)\n2. Dashboard with real-time balance and transaction history\n3. Money Transfers\n4. Document Management & File Uploads\n5. PDF Report Generation (using PDFKit)\n6. Role-based Access Control (Admin, User, Restricted, Guest)"
+  },
+  {
+    title: "Getting Started",
+    content: "To run the application locally:\n\n1. Run `npm install` to install dependencies.\n2. Run `npm start` to start the server.\n3. Open your browser and navigate to `http://localhost:3000`.\n\nYou can log in with predefined accounts like 'admin' (password: admin123) or 'carlos' (password: carlos2024)."
+  }
+];
+
+async function runTutorial() {
+  for (let i = 0; i < tutorialSteps.length; i++) {
+    clearScreen();
+    printHeader();
+    const step = tutorialSteps[i];
+    console.log(`${colors.yellow}${colors.bright}Step ${i + 1} of ${tutorialSteps.length}: ${step.title}${colors.reset}\n`);
+    console.log(`${colors.green}${step.content}${colors.reset}\n`);
+    
+    if (i < tutorialSteps.length - 1) {
+      await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter to continue...' }]);
+    } else {
+      await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter to finish the tutorial and return to the main menu...' }]);
+    }
+  }
+  mainMenu();
+}
+
+function runVerificationTest(testName) {
+  return new Promise((resolve) => {
+    // Using npx jest to run the specific test case
+    const command = `npx jest __tests__/security.test.js -t "${testName}" --forceExit`;
+    exec(command, (error, stdout, stderr) => {
+      // In jest, an error means the test failed
+      if (error) {
+        console.log(`\n${colors.red}${colors.bright}❌ VERIFICATION FAILED${colors.reset}`);
+        console.log(`${colors.yellow}The vulnerability is still present in the code. Keep trying!${colors.reset}\n`);
+      } else {
+        console.log(`\n${colors.green}${colors.bright}✅ VERIFICATION SUCCESSFUL${colors.reset}`);
+        console.log(`${colors.cyan}Congratulations! You have successfully patched this vulnerability.${colors.reset}\n`);
+      }
+      resolve();
+    });
+  });
 }
 
 async function runLab(lab) {
@@ -42,6 +97,20 @@ async function runLab(lab) {
   console.log(`\n${colors.green}🛡️  PHASE 3: MITIGATION${colors.reset}`);
   console.log(`${lab.mitigation}\n`);
   
+  if (lab.testName) {
+    const { verify } = await inquirer.prompt([{ 
+      type: 'confirm', 
+      name: 'verify', 
+      message: 'Would you like to verify your patch using the automated test suite?', 
+      default: false 
+    }]);
+
+    if (verify) {
+      console.log(`\n${colors.cyan}Running verification test for: ${lab.name}... Please wait.${colors.reset}`);
+      await runVerificationTest(lab.testName);
+    }
+  }
+
   await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter to return to the main menu...' }]);
   mainMenu();
 }
@@ -49,6 +118,7 @@ async function runLab(lab) {
 const labs = [
   {
     name: "SQL Injection (SQLi)",
+    testName: "SQL Injection (SQLi) should be mitigated on Login",
     theory: "SQL Injection occurs when untrusted user input is directly concatenated into a database query without proper sanitization or parameterization. This allows attackers to manipulate the SQL statement, bypassing authentication or accessing unauthorized data.",
     exploit: "1. Open your browser and go to http://localhost:3000/login\n2. In the 'Username' field, enter: admin' --\n3. Enter any password and click Sign In.\n4. You will be logged in as the admin user because the '--' comments out the password check in the query.",
     mitigation: `Vulnerable Code (routes/auth.js):\n${colors.red}const query = \`SELECT * FROM users WHERE username = '\${username}' AND password = '\${password}'\`;\nconst user = db.prepare(query).get();${colors.reset}\n\nSecure Code (Using Parameterized Queries):\n${colors.green}const query = 'SELECT * FROM users WHERE username = ? AND password = ?';\nconst user = db.prepare(query).get(username, password);${colors.reset}\n\nWhy it works: Parameterized queries treat user input as literal values, not as executable SQL code.`
@@ -67,9 +137,10 @@ const labs = [
   },
   {
     name: "Broken Access Control",
+    testName: "Broken Access Control should be mitigated for Admin Panel",
     theory: "Broken Access Control allows users to act outside of their intended permissions. This can lead to unauthorized information disclosure, modification, or destruction of data.",
     exploit: "1. Log in as a standard user (e.g., carlos / carlos2024).\n2. Look at your cookies (using Developer Tools). You will see a cookie like 'role=user'.\n3. Change the value of the 'role' cookie to 'admin' and add a new cookie 'isAdmin=true'.\n4. Navigate to http://localhost:3000/admin. You now have full administrator access!",
-    mitigation: `Vulnerable Code:\n${colors.red}const role = req.cookies.role;\nif (role === 'admin') { // Grants access based on user-controlled cookie }${colors.reset}\n\nSecure Code:\n${colors.green}const role = req.session.role;\nif (role === 'admin') { // Grants access based on server-side session }${colors.reset}\n\nWhy it works: Access control decisions must be made on the server using trusted data (like server-side sessions), never relying on client-modifiable data like cookies or hidden fields.`
+    mitigation: `Vulnerable Code (middleware/auth.js):\n${colors.red}const role = req.cookies.role;\nif (role === 'admin') { // Grants access based on user-controlled cookie }${colors.reset}\n\nSecure Code:\n${colors.green}const role = req.session.role;\nif (role === 'admin') { // Grants access based on server-side session }${colors.reset}\n\nWhy it works: Access control decisions must be made on the server using trusted data (like server-side sessions), never relying on client-modifiable data like cookies or hidden fields.`
   },
   {
     name: "Insecure Session Management",
@@ -85,6 +156,7 @@ const labs = [
   },
   {
     name: "Insecure Direct Object Reference (IDOR)",
+    testName: "IDOR should be mitigated on Profile viewing",
     theory: "IDOR occurs when an application provides direct access to objects based on user-supplied input. If authorization is not checked, attackers can access other users' data.",
     exploit: "1. Log in as 'carlos' (carlos2024).\n2. Go to 'My Profile' (http://localhost:3000/profile). Note the URL might redirect to /profile/2 (Carlos's ID).\n3. Change the URL to http://localhost:3000/profile/1\n4. You are now viewing the Admin's profile and private data, even though you are logged in as Carlos.",
     mitigation: `Vulnerable Code (routes/users.js):\n${colors.red}const userId = req.params.id;\nconst user = db.prepare('SELECT * FROM users WHERE id = ' + userId).get();${colors.reset}\n\nSecure Code:\n${colors.green}const userId = req.params.id;\n// Check authorization!\nif (userId !== String(req.session.userId) && req.session.role !== 'admin') {\n  return res.status(403).send("Forbidden");\n}\nconst user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);${colors.reset}\n\nWhy it works: The server must always verify that the currently authenticated user has the right to access the requested resource.`
@@ -105,25 +177,29 @@ async function mainMenu() {
     {
       type: 'list',
       name: 'choice',
-      message: 'Select a vulnerability lab to explore:',
+      message: 'Select an option to continue:',
       choices: [
-        ...labs.map((lab, index) => ({ name: `${index + 1}. ${lab.name}`, value: index })),
+        { name: '📚 1. Interactive Tutorial (Start Here)', value: 'tutorial' },
         new inquirer.Separator(),
-        { name: 'Exit', value: 'exit' }
+        ...labs.map((lab, index) => ({ name: `🧪 ${index + 2}. Lab: ${lab.name}`, value: index })),
+        new inquirer.Separator(),
+        { name: '🚪 Exit', value: 'exit' }
       ],
-      pageSize: 12
+      pageSize: 14
     }
   ]);
 
   if (choice === 'exit') {
     console.log(`\n${colors.cyan}Thanks for using the Learning Lab! Keep hacking safely.${colors.reset}\n`);
     process.exit(0);
+  } else if (choice === 'tutorial') {
+    await runTutorial();
   } else {
     await runLab(labs[choice]);
   }
 }
 
-// Start the lab
+// Start the app
 mainMenu().catch(err => {
   console.error(err);
   process.exit(1);

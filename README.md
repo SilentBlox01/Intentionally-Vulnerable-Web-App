@@ -325,9 +325,9 @@ npm run test:coverage
 
 ## Interactive Learning Lab
 
-We have built a dedicated **Terminal-based Interactive Laboratory** that guides you step-by-step through discovering, exploiting, and mitigating the 8 main vulnerabilities within the running application.
+We have built a dedicated **Terminal-based Interactive Learning Lab** that includes an architecture tutorial and guides you step-by-step through discovering, exploiting, and mitigating the 8 main vulnerabilities within the running application.
 
-To start the lab:
+To start the interactive lab and tutorial:
 ```bash
 npm run lab
 ```
@@ -341,16 +341,6 @@ npm run lab
 6. Sensitive Data Exposure
 7. Insecure Direct Object Reference (IDOR)
 8. Insecure File Upload
-
----
-
-## Interactive Tutorial
-
-Run the basic interactive terminal tutorial:
-
-```bash
-node tutorial.js
-```
 
 ## Intentional Vulnerabilities
 
