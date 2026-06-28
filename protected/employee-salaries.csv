@@ -1,10 +1,10 @@
 employee_id,full_name,position,department,annual_salary,bonus,ssn_last4
-EMP001,Carlos Administrador,CEO,Executive,185000.00,50000.00,4521
-EMP002,María González,VP Engineering,Technology,145000.00,30000.00,7832
-EMP003,Roberto Sánchez,Senior Developer,Technology,120000.00,20000.00,1245
-EMP004,Ana Martínez,HR Director,Human Resources,110000.00,15000.00,9087
-EMP005,Pedro López,Security Analyst,IT Security,95000.00,12000.00,3456
-EMP006,Laura Fernández,Account Manager,Operations,85000.00,10000.00,6789
+EMP001,Carlos Administrator,CEO,Executive,185000.00,50000.00,4521
+EMP002,Maria Gonzalez,VP Engineering,Technology,145000.00,30000.00,7832
+EMP003,Roberto Sanchez,Senior Developer,Technology,120000.00,20000.00,1245
+EMP004,Ana Martinez,HR Director,Human Resources,110000.00,15000.00,9087
+EMP005,Pedro Lopez,Security Analyst,IT Security,95000.00,12000.00,3456
+EMP006,Laura Fernandez,Account Manager,Operations,85000.00,10000.00,6789
 EMP007,Diego Torres,Junior Developer,Technology,65000.00,5000.00,2345
 EMP008,Carmen Ruiz,Customer Support,Operations,55000.00,3000.00,8901
 EMP009,Juan Herrera,IT Support,Technology,60000.00,4000.00,5678

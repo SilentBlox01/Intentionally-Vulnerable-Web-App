@@ -52,7 +52,7 @@ app.use('/backup', express.static(path.join(__dirname, 'backup')));
 
 
 app.get('/.env', (req, res) => {
-  res.sendFile(path.join(__dirname, '.env'));
+  res.sendFile(path.join(__dirname, '.env'), { dotfiles: 'allow' });
 });
 
 

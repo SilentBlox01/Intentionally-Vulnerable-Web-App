@@ -1,42 +1,22 @@
 const request = require('supertest');
-const express = require('express');
-const { initializeDatabase } = require('../database/init');
-const authRoutes = require('../routes/auth');
-const userRoutes = require('../routes/users');
-const adminRoutes = require('../routes/admin');
-const uploadRoutes = require('../routes/upload');
-const session = require('express-session');
 const config = require('../config');
 
-let app;
+// Set in-memory DB before requiring server
+config.DB_PATH = ':memory:';
+const app = require('../server');
+
 let db;
 
 beforeAll(() => {
-  // Use in-memory DB for tests
-  config.DB_PATH = ':memory:';
-  db = initializeDatabase();
-
-  app = express();
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(session({
-    secret: config.SESSION_SECRET || 'testsecret',
-    resave: false,
-    saveUninitialized: true
-  }));
-
-  const path = require('path');
-  app.set('view engine', 'ejs');
-  app.set('views', path.join(__dirname, '../views'));
-
-  app.use('/', authRoutes(db));
-  app.use('/', userRoutes(db));
-  app.use('/', adminRoutes(db));
-  app.use('/', uploadRoutes(db));
+  // We need a reference to the DB to close it later
+  // The server already initialized it. We can get it if we need to,
+  // but better yet, let's just use it as is.
+  // Actually, wait, we don't have a direct reference to the db here anymore.
+  // But sqlite3 closes automatically when process exits.
 });
 
 afterAll(() => {
-  if (db) db.close();
+  // We'll let sqlite handle teardown since it's in-memory
 });
 
 describe('Vulnerability Patch Verification', () => {
@@ -134,6 +114,8 @@ describe('Vulnerability Patch Verification', () => {
   test('Sensitive Data Exposure should be mitigated', async () => {
     // Attempt to access the exposed .env file
     const envResponse = await request(app).get('/.env');
+    console.log("envResponse status:", envResponse.status);
+    console.log("envResponse text:", envResponse.text);
     // Attempt to access the debug endpoint
     const debugResponse = await request(app).get('/api/debug');
 

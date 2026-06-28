@@ -38,7 +38,7 @@ describe('User Routes', () => {
       const res = await agent
         .post(`/profile/${userId}/update`)
         .send({
-          full_name: 'Carlos García Updated',
+          full_name: 'Carlos Garcia Updated',
           email: 'carlos_updated@example.com',
           phone: '555-9999',
           address: '456 Updated Ave',
