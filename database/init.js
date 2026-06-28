@@ -4,15 +4,20 @@ const fs = require('fs');
 const config = require('../config');
 
 function initializeDatabase(existingDb) {
-  const dbDir = path.dirname(config.DB_PATH);
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+  // Use in-memory DB for tests to avoid polluting the on-disk database
+  const dbPath = (process.env.NODE_ENV === 'test') ? ':memory:' : config.DB_PATH;
+
+  if (dbPath !== ':memory:') {
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
   }
 
-  const db = existingDb || new Database(config.DB_PATH);
+  const db = existingDb || new Database(dbPath);
 
-  // Enable WAL mode for performance
-  db.pragma('journal_mode = WAL');
+  // Enable WAL mode for performance (not applicable to :memory: but safe)
+  try { db.pragma('journal_mode = WAL'); } catch (e) { /* ignore for in-memory */ }
 
   // Users table
   db.exec(`
