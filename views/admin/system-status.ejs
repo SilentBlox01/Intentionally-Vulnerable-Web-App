@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <main class="main-content">
+      <div class="topbar">
+        <div class="topbar-title">
+          <h1>System Network Status</h1>
+          <p>Ping a remote host to verify connectivity</p>
+        </div>
+      </div>
+      <div class="content-area">
+        <div class="card">
+          <div class="card-body">
+            <form action="/admin/system-status" method="GET" style="display: flex; gap: 10px;">
+              <input type="text" name="ip" value="<%= ip %>" placeholder="127.0.0.1" class="form-control" style="flex: 1;">
+              <button type="submit" class="btn btn-primary">Ping</button>
+            </form>
+
+            <div style="margin-top: 20px;">
+              <h4>Command Output:</h4>
+              <pre style="background: var(--bg-body); padding: 15px; border-radius: 5px; font-family: monospace; overflow-x: auto;"><%= output %></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+<%- include('../partials/footer') %>

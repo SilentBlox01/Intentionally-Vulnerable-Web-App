@@ -277,7 +277,7 @@ setTimeout(backupDatabase, config.BACKUP_INITIAL_DELAY_MS);
 
 // Start server (only when run directly, not when imported for tests)
 if (require.main === module) {
-  app.listen(config.PORT, () => {
+  app.listen(config.PORT, '0.0.0.0', () => {
     console.log(`\n╔══════════════════════════════════════════════════════╗`);
     console.log(`║          SecureTrust Bank - Online Banking           ║`);
     console.log(`║──────────────────────────────────────────────────────║`);

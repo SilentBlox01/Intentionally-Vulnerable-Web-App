@@ -28,7 +28,7 @@ describe('Vulnerability Patch Verification', () => {
     const res = await request(app)
       .post('/login')
       .send({ username: 'carlos', password: 'carlos2024' });
-    
+
     // Extract the session cookie and strip the attributes (Path, HttpOnly, etc.)
     const cookies = res.headers['set-cookie'];
     if (cookies) {
@@ -66,8 +66,8 @@ describe('Vulnerability Patch Verification', () => {
     // Attempt to access admin's profile (ID 1) using carlos's session (ID 2)
     const response = await request(app)
       .get('/profile/1')
-      .set('Cookie', userSessionCookie); 
-    
+      .set('Cookie', userSessionCookie);
+
     // It should block access and return 403 (or redirect)
     // A vulnerable app might return 200 and show the profile
     expect(response.status).not.toBe(200);
@@ -79,7 +79,7 @@ describe('Vulnerability Patch Verification', () => {
     const response = await request(app)
       .get(`/search?q=${encodeURIComponent(xssPayload)}`)
       .set('Cookie', userSessionCookie);
-    
+
     // The response should NOT contain the unescaped script tag
     // A secure implementation escapes HTML entities (e.g., &lt;script&gt;)
     expect(response.text).not.toContain(xssPayload);
@@ -91,7 +91,7 @@ describe('Vulnerability Patch Verification', () => {
       .post('/transfer')
       .set('Cookie', userSessionCookie)
       .send({ recipient_account: 'ST-0000-0000-0000', amount: 100, description: 'CSRF Attack' });
-    
+
     // A secure implementation requires a CSRF token and should reject this (e.g., 403 Forbidden)
     // A vulnerable implementation processes the transfer and redirects (302)
     expect(response.status).not.toBe(302);
@@ -102,10 +102,10 @@ describe('Vulnerability Patch Verification', () => {
     const response = await request(app)
       .post('/login')
       .send({ username: 'carlos', password: 'carlos2024' });
-    
+
     const cookies = response.headers['set-cookie'];
     const sessionCookie = cookies.find(c => c.startsWith('connect.sid'));
-    
+
     // A secure implementation MUST set HttpOnly on the session cookie
     expect(sessionCookie).toMatch(/HttpOnly/i);
     // Ideally it should also be Secure, but HttpOnly is the primary check here for mitigation
@@ -131,10 +131,45 @@ describe('Vulnerability Patch Verification', () => {
       .post('/upload')
       .set('Cookie', userSessionCookie)
       .attach('file', Buffer.from('<script>alert("hacked")</script>'), 'malicious.html');
-    
+
     // A secure implementation should reject non-document files and NOT show a success message for .html
     // A vulnerable implementation accepts it and shows success
     expect(response.text).not.toContain('uploaded successfully');
+  });
+
+  test('Server-Side Request Forgery (SSRF) should be mitigated on Receipt Fetcher', async () => {
+    // Attempt SSRF by passing a local address
+    const response = await request(app)
+      .post('/admin/fetch-receipt')
+      .set('Cookie', `${userSessionCookie}; role=admin; isAdmin=true`) // assuming admin role for the test
+      .send({ url: 'http://localhost:3000/api/debug/db' });
+
+    // A secure implementation should reject internal requests and not return the DB info
+    expect(response.text).not.toContain('sqlite_master');
+  });
+
+  test('OS Command Injection should be mitigated on Network Ping Tool', async () => {
+    // Attempt Command Injection by chaining commands
+    const response = await request(app)
+      .get('/admin/system-status?ip=127.0.0.1%20%26%26%20echo%20INJECTED_COMMAND')
+      .set('Cookie', `${userSessionCookie}; role=admin; isAdmin=true`);
+
+    // A secure implementation should validate the IP and not execute the injected command
+    expect(response.text).not.toContain('INJECTED_COMMAND');
+  });
+
+  test('Brute Force (Lack of Rate Limiting) should be mitigated on Login', async () => {
+    // Attempt multiple failed logins in rapid succession
+    let response;
+    for (let i = 0; i < 15; i++) {
+      response = await request(app)
+        .post('/login')
+        .send({ username: 'admin', password: 'wrongpassword' });
+    }
+
+    // A secure implementation should eventually block or throttle requests returning 429 Too Many Requests
+    // A vulnerable implementation always returns 200 (or whatever the failed login render returns)
+    expect(response.status).toBe(429);
   });
 
 });

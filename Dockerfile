@@ -16,8 +16,9 @@ RUN npm install
 # Bundle app source
 COPY . .
 
-# Initialize config files from examples
-RUN cp .env.example .env && cp config.js.example config.js
+# Initialize config files from examples if they don't exist
+RUN [ ! -f .env ] && cp .env.example .env || true
+RUN [ ! -f config.js ] && cp config.js.example config.js || true
 
 # Expose port 3000
 EXPOSE 3000

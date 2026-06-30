@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <main class="main-content">
+      <div class="topbar">
+        <div class="topbar-title">
+          <h1>External Receipt Viewer</h1>
+          <p>Fetch and view receipts from external URLs</p>
+        </div>
+      </div>
+      <div class="content-area">
+        <div class="card">
+          <div class="card-body">
+            <form action="/admin/fetch-receipt" method="POST" style="display: flex; gap: 10px;">
+              <input type="text" name="url" value="<%= url || '' %>" placeholder="http://example.com/receipt.txt" class="form-control" style="flex: 1;">
+              <button type="submit" class="btn btn-primary">Fetch</button>
+            </form>
+
+            <% if (typeof content !== 'undefined') { %>
+            <div style="margin-top: 20px;">
+              <h4>Response:</h4>
+              <!-- Intentionally using <%- to allow XSS if SSRF returns HTML, double vulnerability! -->
+              <div style="background: var(--bg-body); padding: 15px; border-radius: 5px; overflow-x: auto;">
+                <%- content %>
+              </div>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </main>
+<%- include('../partials/footer') %>

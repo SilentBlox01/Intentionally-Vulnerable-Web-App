@@ -33,7 +33,7 @@
 
 ## Features
 
-### Core Banking
+### Core Banking & UI
 - Realistic banking UI with a professional dashboard
 - User registration and login system
 - Account balance and transaction history
@@ -52,8 +52,15 @@
 - Reports page with filters and summary cards
 - Admin analytics panel with role distribution and transaction trends
 
+### Gamification & Training
+- **🏆 CTF Challenge Mode** integrated into the CLI lab tool
+- 5 hidden flags (e.g., `FLAG{...}`) distributed across the system
+- Interactive scoreboard and progress saving
+
 ### Administration
 - Admin panel with stats, charts, and tabbed data views
+- Tools for Network Ping testing (Vulnerable to Command Injection)
+- Tools for External Receipt fetching (Vulnerable to SSRF)
 - User role management (admin, user, restricted, guest)
 - User status management (active, inactive, suspended)
 - Excel export of all users
@@ -92,48 +99,36 @@ SecureTrust Bank/
 ├── server.js              # Main application entry point
 ├── config.js              # Configuration (imports from config/)
 ├── package.json
-├── .env                   # Environment variables (secrets)
+├── .env                   # Environment variables (secrets & flags)
+├── internal_api/          # Secondary Node.js microservice for SSRF target
 ├── config/
 │   └── constants.js       # Centralized constants (limits, patterns, timeouts)
 ├── database/
-│   └── init.js            # Database initialization and schema
+│   └── init.js            # Database initialization, schema, and CTF flags
 ├── middleware/
 │   └── auth.js            # Authentication & authorization middleware
 ├── routes/
 │   ├── auth.js            # Login, register, logout
 │   ├── users.js           # Profile, search, transfers, user API
 │   ├── documents.js       # Document CRUD and comments
-│   ├── admin.js           # Admin panel, analytics, user management
+│   ├── admin.js           # Admin panel, analytics, vulnerable tools
 │   ├── upload.js          # File upload handling
 │   └── reports.js         # Reports, PDF/Excel export, analytics API
 ├── utils/
 │   ├── queryBuilder.js    # Reusable SQL WHERE clause builder
 │   └── validators.js      # Input validation functions
 ├── views/                 # EJS templates
-│   ├── login.ejs
-│   ├── register.ejs
-│   ├── dashboard.ejs
-│   ├── profile.ejs
-│   ├── admin.ejs
-│   ├── reports.ejs
-│   ├── documents.ejs
-│   ├── search.ejs
-│   ├── upload.ejs
-│   └── error.ejs
+│   ├── admin/             # Admin specific templates
+│   └── ...                # Other templates
 ├── public/
 │   ├── css/style.css      # Application styles
 │   └── js/app.js          # Client-side JavaScript
-├── __tests__/             # Test suites (Jest)
-│   ├── auth.test.js
-│   ├── users.test.js
-│   ├── documents.test.js
-│   ├── admin.test.js
-│   ├── reports.test.js
-│   └── dashboard.test.js
+├── __tests__/             # Test suites (Jest, tests all vulnerabilities)
 ├── uploads/               # User-uploaded files
 ├── protected/             # Protected file storage
 ├── backup/                # Database backups
-└── tutorial.js            # Interactive terminal tutorial
+├── secret.txt             # CTF Flag file for Command Injection
+└── lab.js                 # Interactive terminal tutorial & CTF mode
 ```
 
 ---
@@ -194,17 +189,15 @@ You can easily run this application in Replit. Just import the GitHub repository
 
 [![Run on Replit](https://replit.com/badge/github/SilentBlox01/Intentionally-Vulnerable-Web-App)](https://replit.com/new/github/SilentBlox01/Intentionally-Vulnerable-Web-App)
 
-### Deploy with Docker
+### Deploy with Docker (Multi-Container Architecture)
 
-A `Dockerfile` is included to easily containerize and deploy the application.
+A `docker-compose.yml` is included to easily containerize and deploy the application along with its internal microservices (used for SSRF labs).
 
 ```bash
-# Build the Docker image
-docker build -t securetrust-bank .
-
-# Run the container (maps port 3000)
-docker run -p 3000:3000 securetrust-bank
+# Build and run the containers
+docker-compose up --build
 ```
+*The main application runs on port 3000. An internal API microservice runs on port 4000 (accessible only via SSRF).*
 
 ---
 
@@ -341,10 +334,13 @@ npm run lab
 6. Sensitive Data Exposure
 7. Insecure Direct Object Reference (IDOR)
 8. Insecure File Upload
+9. Server-Side Request Forgery (SSRF)
+10. OS Command Injection
+11. Brute Force (Lack of Rate Limiting)
 
 ## Intentional Vulnerabilities
 
-This application contains **intentional security vulnerabilities** for educational purposes:
+This application contains **11 intentional security vulnerabilities** for educational purposes:
 
 - **SQL Injection** - Login form, search, documents, user API
 - **Broken Authentication** - Cookie-based session bypass
@@ -354,6 +350,10 @@ This application contains **intentional security vulnerabilities** for education
 - **Information Disclosure** - Debug endpoints, verbose errors, `.env` exposure
 - **No CSRF Protection** - State-changing requests without tokens
 - **Weak Session Configuration** - `httpOnly: false`, `secure: false`
+- **Insecure File Upload** - No MIME/extension validation on file uploads
+- **SSRF (Server-Side Request Forgery)** - External receipt fetcher blindly trusts URLs
+- **OS Command Injection** - Network ping tool passes user input directly to the shell
+- **Brute Force** - No rate limiting on authentication endpoints
 
 > These vulnerabilities are by design. Do NOT attempt to fix or remediate them.
 

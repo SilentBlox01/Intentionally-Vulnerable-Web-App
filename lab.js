@@ -48,7 +48,7 @@ async function runTutorial() {
     const step = tutorialSteps[i];
     console.log(`${colors.yellow}${colors.bright}Step ${i + 1} of ${tutorialSteps.length}: ${step.title}${colors.reset}\n`);
     console.log(`${colors.green}${step.content}${colors.reset}\n`);
-    
+
     if (i < tutorialSteps.length - 1) {
       await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter to continue...' }]);
     } else {
@@ -80,29 +80,29 @@ async function runLab(lab) {
   clearScreen();
   printHeader();
   console.log(`${colors.yellow}${colors.bright}--- [ ${lab.name} ] ---${colors.reset}\n`);
-  
+
   // Phase 1: Theory
   console.log(`${colors.cyan}📖 PHASE 1: THEORY${colors.reset}`);
   console.log(`${lab.theory}\n`);
-  
+
   await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter to proceed to the Exploitation phase...' }]);
-  
+
   // Phase 2: Exploitation
   console.log(`\n${colors.red}🧨 PHASE 2: EXPLOITATION${colors.reset}`);
   console.log(`${lab.exploit}\n`);
-  
+
   await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter once you have successfully executed the exploit...' }]);
-  
+
   // Phase 3: Mitigation
   console.log(`\n${colors.green}🛡️  PHASE 3: MITIGATION${colors.reset}`);
   console.log(`${lab.mitigation}\n`);
-  
+
   if (lab.testName) {
-    const { verify } = await inquirer.prompt([{ 
-      type: 'confirm', 
-      name: 'verify', 
-      message: 'Would you like to verify your patch using the automated test suite?', 
-      default: false 
+    const { verify } = await inquirer.prompt([{
+      type: 'confirm',
+      name: 'verify',
+      message: 'Would you like to verify your patch using the automated test suite?',
+      default: false
     }]);
 
     if (verify) {
@@ -171,13 +171,100 @@ const labs = [
     theory: "Allowing users to upload files without strict validation on file type, extension, and contents can lead to Remote Code Execution (RCE) if an attacker uploads a malicious script (like a web shell) and the server executes it.",
     exploit: "1. Log in and navigate to 'Upload Files' (http://localhost:3000/upload).\n2. Create a file named 'shell.html' containing malicious JavaScript or a PHP web shell.\n3. Upload the file. The application accepts it without checking the extension or MIME type.\n4. Navigate to http://localhost:3000/uploads/shell.html. The file will be served directly, executing the malicious payload in your browser or on the server.",
     mitigation: `Vulnerable Code (routes/upload.js):\n${colors.red}const storage = multer.diskStorage({\n  filename: function (req, file, cb) {\n    cb(null, file.originalname); // Trusts the user's filename\n  }\n});${colors.reset}\n\nSecure Code:\n${colors.green}const allowedMimeTypes = ['application/pdf', 'image/jpeg'];\nif (!allowedMimeTypes.includes(file.mimetype)) { return error; }\n// Rename the file to a safe, random string to prevent path traversal and execution\nconst safeFilename = crypto.randomUUID() + '.pdf';\nfile.mv(path.join(__dirname, '../uploads/', safeFilename));${colors.reset}\n\nWhy it works: Strictly validating MIME types and extensions prevents executable files from being uploaded. Generating random, safe filenames ensures attackers cannot guess the file path or rely on malicious extensions.`
+  {
+    name: "Server-Side Request Forgery (SSRF)",
+    testName: "Server-Side Request Forgery (SSRF) should be mitigated on Receipt Fetcher",
+    theory: "SSRF occurs when a web application fetches a remote resource without validating the user-supplied URL. Attackers can use this to make the server send requests to internal services, bypassing firewalls.",
+    exploit: "1. Log in as 'admin' and go to Quick Actions -> External Receipt Fetcher (http://localhost:3000/admin/fetch-receipt).\n2. Instead of a normal URL, enter an internal Docker network URL: http://internal-api:4000/v1/secret-vault\n3. The server will fetch the internal-only microservice and return the CTF flag!\n\nExplanation: The server blindly trusts the URL and executes the request from its own internal network context.",
+    mitigation: `Vulnerable Code (routes/admin.js):\n${colors.red}const response = await fetch(url);${colors.reset}\n\nSecure Code:\n${colors.green}const parsedUrl = new URL(url);\nif (parsedUrl.hostname === 'localhost' || parsedUrl.hostname.startsWith('127.') || parsedUrl.hostname.startsWith('10.')) {\n  return res.status(403).send('Access to internal networks is forbidden');\n}${colors.reset}\n\nWhy it works: Validating the parsed URL against a blocklist (or allowlist) of domains/IPs prevents the server from querying internal infrastructure.`
+  },
+  {
+    name: "OS Command Injection",
+    testName: "OS Command Injection should be mitigated on Network Ping Tool",
+    theory: "OS Command Injection allows an attacker to execute arbitrary operating system commands on the server that is running an application, often resulting in full system compromise.",
+    exploit: "1. Log in as 'admin' and go to Quick Actions -> Network Ping Tool.\n2. In the IP field, enter: 127.0.0.1 && cat secret.txt\n3. The application will execute 'ping 127.0.0.1' and then execute 'cat secret.txt', revealing the hidden CTF flag on the server file system.",
+    mitigation: `Vulnerable Code (routes/admin.js):\n${colors.red}const command = \`ping -n 3 \${ip}\`;\nexec(command, ...);${colors.reset}\n\nSecure Code:\n${colors.green}const { execFile } = require('child_process');\n// Avoid using a shell, pass arguments as an array\nexecFile('ping', ['-n', '3', ip], ...);${colors.reset}\n\nWhy it works: Using execFile instead of exec prevents the shell from interpreting meta-characters (like && or |), meaning the input is strictly treated as an argument to the ping command.`
+  },
+  {
+    name: "Brute Force / Lack of Rate Limiting",
+    testName: "Brute Force (Lack of Rate Limiting) should be mitigated on Login",
+    theory: "Without rate limiting, attackers can use automated tools to guess passwords (brute force) or perform credential stuffing attacks (trying millions of leaked username/password pairs) until they succeed.",
+    exploit: "1. Attempt to log in with an incorrect password 50 times in a row very quickly.\n2. Notice that the server never blocks you, never asks for a CAPTCHA, and never locks the account.\n3. An attacker could use Burp Suite Intruder or Hydra to guess Carlos's password automatically.",
+    mitigation: `Secure Code (Using express-rate-limit):\n${colors.green}const rateLimit = require('express-rate-limit');\nconst loginLimiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 5, // Limit each IP to 5 requests per windowMs\n  message: 'Too many login attempts, please try again after 15 minutes'\n});\napp.use('/login', loginLimiter);${colors.reset}\n\nWhy it works: A rate limiter tracks IPs or accounts and temporarily blocks them if they exceed a defined threshold, making automated brute forcing mathematically infeasible.`
   }
 ];
+
+const fs = require('fs');
+
+async function runCTFMode() {
+  clearScreen();
+  printHeader();
+  console.log(`${colors.magenta}${colors.bright}🏆 CTF CHALLENGE MODE 🏆${colors.reset}\n`);
+
+  const progressFile = 'ctf-progress.json';
+  let progress = { flags: [] };
+  if (fs.existsSync(progressFile)) {
+    progress = JSON.parse(fs.readFileSync(progressFile, 'utf8'));
+  }
+
+  const knownFlags = [
+    'FLAG{SQLI_M4ST3R_C0MPR0M1S3D}',
+    'FLAG{IDOR_3XPL0R3R_S3CR3T5}',
+    'FLAG{S3NS1T1V3_D4T4_EXP0S3D}',
+    'FLAG{SSRF_M4ST3R_H4CK3R}',
+    'FLAG{B4D_C0MM4ND_1NJ3CT10N}'
+  ];
+
+  console.log(`You have found ${colors.green}${progress.flags.length}${colors.reset} out of ${colors.green}${knownFlags.length}${colors.reset} flags!\n`);
+
+  if (progress.flags.length > 0) {
+    console.log(`Found flags:`);
+    progress.flags.forEach(f => console.log(`- ${colors.green}✓ ${f}${colors.reset}`));
+    console.log();
+  }
+
+  if (progress.flags.length === knownFlags.length) {
+    console.log(`\n${colors.cyan}${colors.bright}🎉 CONGRATULATIONS! YOU HAVE HACKED SECURETRUST BANK AND FOUND ALL FLAGS! 🎉${colors.reset}\n`);
+    await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter to return to the main menu...' }]);
+    return mainMenu();
+  }
+
+  const { action } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: 'What would you like to do?',
+      choices: [
+        { name: '🚩 Submit a Flag', value: 'submit' },
+        { name: '⬅️  Back to Main Menu', value: 'back' }
+      ]
+    }
+  ]);
+
+  if (action === 'submit') {
+    const { flag } = await inquirer.prompt([{ type: 'input', name: 'flag', message: 'Enter your flag (e.g., FLAG{...}):' }]);
+
+    if (progress.flags.includes(flag)) {
+      console.log(`\n${colors.yellow}You already submitted that flag!${colors.reset}`);
+    } else if (knownFlags.includes(flag)) {
+      console.log(`\n${colors.green}${colors.bright}✅ SUCCESS! Flag accepted!${colors.reset}`);
+      progress.flags.push(flag);
+      fs.writeFileSync(progressFile, JSON.stringify(progress, null, 2));
+    } else {
+      console.log(`\n${colors.red}❌ Invalid flag. Keep hunting!${colors.reset}`);
+    }
+
+    await inquirer.prompt([{ type: 'input', name: 'continue', message: 'Press Enter to continue...' }]);
+    return runCTFMode();
+  } else {
+    return mainMenu();
+  }
+}
 
 async function mainMenu() {
   clearScreen();
   printHeader();
-  
+
   const { choice } = await inquirer.prompt([
     {
       type: 'list',
@@ -185,8 +272,9 @@ async function mainMenu() {
       message: 'Select an option to continue:',
       choices: [
         { name: '📚 1. Interactive Tutorial (Start Here)', value: 'tutorial' },
+        { name: '🏆 2. CTF Challenge Mode', value: 'ctf' },
         new inquirer.Separator(),
-        ...labs.map((lab, index) => ({ name: `🧪 ${index + 2}. Lab: ${lab.name}`, value: index })),
+        ...labs.map((lab, index) => ({ name: `🧪 ${index + 3}. Lab: ${lab.name}`, value: index })),
         new inquirer.Separator(),
         { name: '🚪 Exit', value: 'exit' }
       ],
@@ -199,6 +287,8 @@ async function mainMenu() {
     process.exit(0);
   } else if (choice === 'tutorial') {
     await runTutorial();
+  } else if (choice === 'ctf') {
+    await runCTFMode();
   } else {
     await runLab(labs[choice]);
   }

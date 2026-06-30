@@ -6,10 +6,20 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - securetrust_data:/app/database/data
+      - securetrust_data:/app/database
       - ./uploads:/app/uploads
     environment:
       - NODE_ENV=development
+    restart: unless-stopped
+
+  internal-api:
+    build: ./internal_api
+    # Do not expose ports to the host! This is internal only.
+    # We want students to use SSRF from the 'app' container to hit this container.
+    expose:
+      - "4000"
+    environment:
+      - NODE_ENV=production
     restart: unless-stopped
 
 volumes:

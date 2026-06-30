@@ -169,6 +169,59 @@ module.exports = function(db) {
     }
   });
 
+  // OS Command Injection Endpoint (Vulnerable)
+  router.get('/admin/system-status', isAuthenticated, isAdmin, (req, res) => {
+    const ip = req.query.ip || '127.0.0.1';
+    // Intentionally vulnerable: no sanitization of 'ip'
+    const command = `ping -n 3 ${ip}`; // Use -n for Windows compatibility
+    const { exec } = require('child_process');
+
+    exec(command, (error, stdout, stderr) => {
+      res.render('admin/system-status', {
+        title: 'System Network Status',
+        output: stdout || stderr || (error ? error.message : 'No output'),
+        ip: ip,
+        user: req.session
+      });
+    });
+  });
+
+  // Server-Side Request Forgery (SSRF) Endpoint (Vulnerable)
+  router.post('/admin/fetch-receipt', isAuthenticated, isAdmin, async (req, res) => {
+    const url = req.body.url;
+    if (!url) {
+      return res.status(400).send('URL is required');
+    }
+
+    // Intentionally vulnerable: no validation of the URL (allows internal IPs/hostnames)
+    try {
+      const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args)).catch(err => {
+        // Fallback to built-in fetch for Node 18+
+        if (typeof global.fetch === 'function') {
+           return global.fetch(...args);
+        }
+        throw err;
+      });
+
+      const response = await (typeof global.fetch === 'function' ? global.fetch(url) : (await fetch())(url));
+      const text = await response.text();
+
+      res.render('admin/fetch-receipt', {
+        title: 'External Receipt Viewer',
+        content: text,
+        url: url,
+        user: req.session
+      });
+    } catch (err) {
+      res.render('admin/fetch-receipt', {
+        title: 'External Receipt Viewer',
+        content: `Error fetching URL: ${err.message}`,
+        url: url,
+        user: req.session
+      });
+    }
+  });
+
   // Debug endpoint
   router.get('/api/debug', (req, res) => {
     res.json({

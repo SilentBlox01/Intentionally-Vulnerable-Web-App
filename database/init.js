@@ -233,10 +233,11 @@ function initializeDatabase(existingDb) {
 
     insertDoc.run(1, 'Banking Security Policy', 'All employees must follow established security protocols. Passwords must be changed every 90 days. Do not share credentials under any circumstances.', 'policy', 0);
     insertDoc.run(1, 'Q1 2024 Financial Report', 'Total revenue: $2.5M. Operating expenses: $1.8M. Net profit: $700K. 15% growth compared to the previous quarter.', 'financial', 1);
-    insertDoc.run(1, 'Infrastructure Credentials - CONFIDENTIAL', 'Main server: 192.168.1.100\nUser: root\nPassword: S3rv3rR00t2024!\n\nProduction database: db-prod.internal\nUser: db_admin\nPassword: DbPr0d@2024', 'internal', 1);
+    insertDoc.run(1, 'Infrastructure Credentials - CONFIDENTIAL', 'Main server: 192.168.1.100\nUser: root\nPassword: S3rv3rR00t2024!\n\nProduction database: db-prod.internal\nUser: db_admin\nPassword: DbPr0d@2024\n\nFLAG{SQLI_M4ST3R_C0MPR0M1S3D}', 'internal', 1);
     insertDoc.run(2, 'Loan Contract #4578', 'Personal loan for $25,000 at 8.5% annual rate. Term: 36 months. Monthly payment: $789.50.', 'contract', 0);
     insertDoc.run(3, 'Account Statement - January 2024', 'Initial balance: $10,000.50. Deposits: $3,300.00. Withdrawals: $1,000.00. Final balance: $12,300.50.', 'statement', 0);
     insertDoc.run(1, 'Team Password List', 'Juan (Support): juan.support / Support2024!\nPedro (IT): pedro.it / P3dr0IT!\nLuisa (HR): luisa.hr / Hr@2024\n\nNOTE: Update before March 1st.', 'internal', 1);
+    insertDoc.run(5, 'Corporate Secrets', 'Project X Launch Date: Q4 2024.\nBudget: $500k.\nFLAG{IDOR_3XPL0R3R_S3CR3T5}', 'internal', 1);
 
     // Seed comments
     const insertComment = db.prepare(`
